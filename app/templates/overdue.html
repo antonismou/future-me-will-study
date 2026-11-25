@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% from "macros.html" import task_card with context %}
+{% block title %}Έμειναν πίσω{% endblock %}
+{% block content %}
+<h1>Έμειναν πίσω <span class="muted">· {{ items | length }}</span></h1>
+{% for t in items %}
+  {{ task_card(t, files[t.id], '/overdue', tomorrow, show_course=True) }}
+{% else %}
+  <section class="card">🎉 Τίποτα δεν έμεινε πίσω. Μπράβο!</section>
+{% endfor %}
+{% endblock %}

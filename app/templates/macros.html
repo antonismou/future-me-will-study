@@ -1,0 +1,62 @@
+{% macro bar(pct, color=None) -%}
+<div class="bar" role="progressbar" aria-valuenow="{{ pct }}" aria-valuemin="0" aria-valuemax="100">
+  <span data-pct="{{ pct }}" {% if color %}data-color="{{ color }}"{% endif %}></span>
+</div>
+{%- endmacro %}
+
+{% macro task_card(t, files, next, tomorrow, show_course=False, compact=False) -%}
+{% set cls = status_class[t.status] %}
+<article class="task {{ cls }}" id="task-{{ t.id }}">
+  <div class="task-head">
+    <div>
+      {% if show_course %}<a class="chip" href="/c/{{ t.course_slug }}" data-color="{{ t.course_color }}">{{ t.course_name }}</a>{% endif %}
+      <span class="muted small">{% if t.day_no %}Day {{ t.day_no }} · {% endif %}{{ t.date | gdate }}
+        {% if t.original_date %} · ↪ από {{ t.original_date | gdate }}{% endif %}</span>
+      <h3>{{ t.topic or 'Εργασία' }}</h3>
+    </div>
+    <span class="badge {{ cls }}">{{ t.status }}</span>
+  </div>
+  {% if t.description %}<p>{{ t.description }}</p>{% endif %}
+  {% if t.source and t.source != '-' %}<p class="muted small">📂 {{ t.source }}</p>{% endif %}
+  {% if files %}
+  <ul class="files">
+    {% for f in files %}
+    <li><a href="/files/{{ f.id }}" target="_blank" rel="noopener">{{ '⭐ ' if f.is_primary }}{{ '📄' if f.mime == 'application/pdf' else '🖼️' if f.mime.startswith('image') else '📝' }} {{ f.name }}</a></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  <div class="actions">
+    {% for st in STATUSES %}
+    <form method="post" action="/tasks/{{ t.id }}/status" class="inline">
+      <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+      <input type="hidden" name="next" value="{{ next }}#task-{{ t.id }}">
+      <input type="hidden" name="status" value="{{ st }}">
+      <button class="btn {{ status_class[st] }} {{ 'active' if st == t.status }}" type="submit">{{ {'Ναι': '✅ Έγινε', 'Σε εξέλιξη': '⏳ Σε εξέλιξη', 'Όχι': '○ Όχι'}[st] }}</button>
+    </form>
+    {% endfor %}
+  </div>
+  {% if not compact %}
+  <details class="more">
+    <summary>Σημειώσεις & αναβολή</summary>
+    <form method="post" action="/tasks/{{ t.id }}/notes">
+      <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+      <input type="hidden" name="next" value="{{ next }}#task-{{ t.id }}">
+      <label>Σημειώσεις (τι σε δυσκόλεψε)
+        <textarea name="notes" rows="3">{{ t.notes }}</textarea></label>
+      <button class="btn" type="submit">Αποθήκευση σημειώσεων</button>
+    </form>
+    {% if t.status != 'Ναι' %}
+    <form method="post" action="/tasks/{{ t.id }}/postpone" class="row">
+      <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+      <input type="hidden" name="next" value="{{ next }}">
+      <label>Μετάθεση σε <input type="date" name="new_date" value="{{ tomorrow.isoformat() }}"></label>
+      <button class="btn" type="submit">📅 Αναβολή</button>
+    </form>
+    {% endif %}
+    <a class="small" href="/tasks/{{ t.id }}/edit">✏️ Επεξεργασία εργασίας</a>
+  </details>
+  {% elif t.notes %}
+  <p class="notes small">🗒️ {{ t.notes }}</p>
+  {% endif %}
+</article>
+{%- endmacro %}

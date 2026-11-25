@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Ενέργεια εργασίας{% endblock %}
+{% block content %}
+<section class="card narrow">
+  <h1>{{ task.topic }}</h1>
+  <p class="muted">{{ task.date | gdate }} · κατάσταση: <strong>{{ task.status }}</strong></p>
+  {% if result %}
+    <div class="flash ok">{% if result == 'postponed' %}Η εργασία είναι πλέον στις {{ task.date | gdate }}.{% else %}Η κατάσταση άλλαξε σε «{{ result }}».{% endif %}</div>
+  {% else %}
+    <form method="post" action="/a/{{ token }}">
+      <button class="btn primary" type="submit">{{ {'done': '✅ Σήμανση ως «Ναι»', 'progress': '⏳ Σήμανση ως «Σε εξέλιξη»', 'postpone': '📅 Αναβολή για αύριο'}[action] }}</button>
+    </form>
+  {% endif %}
+  <p><a href="/">Άνοιγμα dashboard</a></p>
+</section>
+{% endblock %}

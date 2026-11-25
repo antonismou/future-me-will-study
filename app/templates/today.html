@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% from "macros.html" import task_card, bar with context %}
+{% block title %}Σήμερα{% endblock %}
+{% block content %}
+<h1>Σήμερα <span class="muted">· {{ today | gdate }}</span></h1>
+{% if not cards %}
+<section class="card">
+  <p>Δεν υπάρχει ακόμα ενεργό μάθημα.</p>
+  <a class="btn primary" href="/courses">➕ Πρόσθεσε μάθημα ή εισήγαγε xlsx</a>
+</section>
+{% endif %}
+{% for c in cards %}
+<section class="course-block">
+  <div class="course-head">
+    <a href="/c/{{ c.course.slug }}" class="course-title" data-color="{{ c.course.color }}">{{ c.course.name }}</a>
+    <div class="stats">
+      {% if c.days_left is not none and c.days_left >= 0 %}<span class="pill">⏳ {{ c.days_left }} μέρες</span>{% endif %}
+      {% if c.streak %}<span class="pill">🔥 {{ c.streak }}</span>{% endif %}
+      {% if c.overdue %}<a class="pill warn" href="/overdue">⚠️ {{ c.overdue }} πίσω</a>{% endif %}
+    </div>
+  </div>
+  {{ bar(c.progress.pct, c.course.color) }}
+  <p class="muted small">Συνολικά {{ c.progress.done }}/{{ c.progress.total }} ({{ c.progress.pct }}%)</p>
+  {% for t in c.tasks %}
+    {{ task_card(t, c.files[t.id], '/', tomorrow) }}
+  {% else %}
+    <div class="card muted">Καμία εργασία για σήμερα.
+      {% if c.upcoming %} Επόμενη: <strong>{{ c.upcoming.topic }}</strong> ({{ c.upcoming.date | gdate }}).{% endif %}</div>
+  {% endfor %}
+</section>
+{% endfor %}
+{% endblock %}

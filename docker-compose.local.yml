@@ -1,0 +1,6 @@
+# Μόνο για τοπική δοκιμή:  docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
+services:
+  app:
+    ports: ["127.0.0.1:${LOCAL_APP_PORT:-8000}:8000"]
+  ntfy:
+    ports: ["127.0.0.1:${LOCAL_NTFY_PORT:-8091}:80"]

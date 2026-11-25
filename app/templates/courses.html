@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from "macros.html" import bar with context %}
+{% block title %}Μαθήματα{% endblock %}
+{% block content %}
+<h1>Μαθήματα</h1>
+{% for r in rows %}
+<section class="card course-row {{ '' if r.course.active else 'inactive' }}">
+  <div class="course-head">
+    <a class="course-title" href="/c/{{ r.course.slug }}" data-color="{{ r.course.color }}">{{ r.course.name }}</a>
+    {% if not r.course.active %}<span class="pill">ανενεργό</span>{% endif %}
+    {% if r.days_left is not none and r.days_left >= 0 %}<span class="pill">⏳ {{ r.days_left }} μέρες</span>{% endif %}
+  </div>
+  {{ bar(r.progress.pct, r.course.color) }}
+  <p class="muted small">{{ r.progress.done }}/{{ r.progress.total }} εργασίες · {{ r.files }} αρχεία</p>
+  <div class="row wrap-gap">
+    <a class="btn" href="/c/{{ r.course.slug }}">🗓️ Πλάνο</a>
+    <a class="btn" href="/c/{{ r.course.slug }}/files">📂 Αρχεία</a>
+    <a class="btn" href="/c/{{ r.course.slug }}/settings">⚙️ Ρυθμίσεις & εισαγωγή</a>
+  </div>
+</section>
+{% endfor %}
+
+<section class="card">
+  <h2>➕ Νέο μάθημα</h2>
+  <form method="post" action="/courses" enctype="multipart/form-data" class="stack">
+    <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+    <label>Όνομα <input name="name" maxlength="120" placeholder="π.χ. ΑΗΚ (κενό = από το xlsx)"></label>
+    <div class="grid2">
+      <label>Ημερομηνία εξέτασης <input type="date" name="exam_date"></label>
+      <label>Χρώμα <input type="color" name="color" value="#2563eb"></label>
+    </div>
+    <label>Πλάνο από xlsx (προαιρετικό) <input type="file" name="xlsx" accept=".xlsx"></label>
+    <label>Ημερολόγιο .ics (προαιρετικό, για αντιστοίχιση ημέρα → PDF σημειώσεων) <input type="file" name="ics" accept=".ics"></label>
+    <label>Έτος πλάνου (μόνο αν δεν αναγράφεται στο xlsx) <input name="year" inputmode="numeric" pattern="\d{4}" placeholder="αυτόματα"></label>
+    <button class="btn primary" type="submit">Δημιουργία</button>
+  </form>
+</section>
+{% endblock %}

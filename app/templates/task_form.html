@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Επεξεργασία' if task else 'Νέα' }} εργασία{% endblock %}
+{% block content %}
+<h1>{{ 'Επεξεργασία εργασίας' if task else 'Νέα εργασία' }} <span class="muted">· {{ course.name }}</span></h1>
+<form method="post" action="{{ '/tasks/%d/edit' % task.id if task else '/c/%s/tasks/new' % course.slug }}" class="card stack">
+  <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+  <div class="grid2">
+    <label>Ημερομηνία <input type="date" name="date" required value="{{ task.date if task else '' }}"></label>
+    <label>Αρ. ημέρας (Day) <input name="day_no" inputmode="numeric" value="{{ task.day_no if task and task.day_no else '' }}"></label>
+  </div>
+  <label>Εβδομάδα
+    <select name="week_id">
+      <option value="">— χωρίς —</option>
+      {% for w in weeks %}<option value="{{ w.id }}" {{ 'selected' if task and task.week_id == w.id }}>{{ w.title }}</option>{% endfor %}
+    </select></label>
+  <label>Θέμα / Διάλεξη <input name="topic" required maxlength="300" value="{{ task.topic if task else '' }}"></label>
+  <label>Εργασία <textarea name="description" rows="2" maxlength="2000">{{ task.description if task else '' }}</textarea></label>
+  <label>Αρχείο / Πηγή (κείμενο) <input name="source" maxlength="500" value="{{ task.source if task else '' }}"></label>
+  <label>Κατάσταση
+    <select name="status">{% for st in STATUSES %}<option {{ 'selected' if task and task.status == st }}>{{ st }}</option>{% endfor %}</select></label>
+  <label>Σημειώσεις <textarea name="notes" rows="3">{{ task.notes if task else '' }}</textarea></label>
+  <fieldset>
+    <legend>Συνδεδεμένα αρχεία (⭐ = ανοίγει από την πρωινή ειδοποίηση)</legend>
+    {% if not files %}<p class="muted small">Δεν έχουν ανέβει αρχεία. <a href="/c/{{ course.slug }}/files">Ανέβασε εδώ</a>.</p>{% endif %}
+    <div class="filepick">
+    {% for f in files %}
+      <div class="filepick-row">
+        <label class="check"><input type="checkbox" name="files" value="{{ f.id }}" {{ 'checked' if f.id in linked }}> <span>{{ f.category }}{{ ' / ' ~ f.grp if f.grp }} — {{ f.name }}</span></label>
+        <label class="check star" title="Κύριο αρχείο"><input type="radio" name="primary_file" value="{{ f.id }}" {{ 'checked' if linked.get(f.id) }}> ⭐</label>
+      </div>
+    {% endfor %}
+    </div>
+  </fieldset>
+  <button class="btn primary" type="submit">Αποθήκευση</button>
+</form>
+{% if task %}
+<form method="post" action="/tasks/{{ task.id }}/delete" data-confirm="Οριστική διαγραφή της εργασίας;">
+  <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+  <button class="btn danger" type="submit">🗑️ Διαγραφή εργασίας</button>
+</form>
+{% endif %}
+{% endblock %}

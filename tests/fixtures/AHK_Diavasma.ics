@@ -1,0 +1,397 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//AHK Study Plan//EL
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:AHK Διάβασμα
+X-WR-TIMEZONE:Europe/Athens
+BEGIN:VEVENT
+UID:ahk-2026-day01@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261126
+DTEND;VALUE=DATE:20261127
+SUMMARY:ΑΗΚ Day 1: Lecture 1 - Στοιχεία 2 ακροδεκτών
+DESCRIPTION:Εργασία: Διάβασμα διαφανειών + σημ
+ ειώσεις βασικών τύπων\nΑρχείο / πηγή: Lecture
+  1.pdf\nΗμερήσιες σημειώσεις: Ημερήσιες Σημ
+ ειώσεις\\L01_Stoixeia.pdf\nΕβδομάδα 1 (Εβδ.1 - Βασι
+ κά)\nΣτο τέλος: σημείωσε την εργασία ως «Ν
+ αι» στο AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day02@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261127
+DTEND;VALUE=DATE:20261128
+SUMMARY:ΑΗΚ Day 2: Lecture 2 - Κυκλώματα 2 ακροδεκτών
+DESCRIPTION:Εργασία: Διάβασμα + 2-3 βασικές ασκή
+ σεις βιβλίου\nΑρχείο / πηγή: Lecture 2.pdf\nΗμερ
+ ήσιες σημειώσεις: Ημερήσιες Σημειώσεις\\
+ L02_Kyklomata2.pdf\nΕβδομάδα 1 (Εβδ.1 - Βασικά)\nΣτο 
+ τέλος: σημείωσε την εργασία ως «Ναι» στο 
+ AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day03@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261128
+DTEND;VALUE=DATE:20261129
+SUMMARY:ΑΗΚ Day 3: Lecture 3 - Σήματα
+DESCRIPTION:Εργασία: Διάβασμα διαφανειών\nΑρχε
+ ίο / πηγή: Lecture 3.pdf\nΗμερήσιες σημειώσεις: 
+ Ημερήσιες Σημειώσεις\\L03_Simata.pdf\nΕβδομάδα 
+ 1 (Εβδ.1 - Βασικά)\nΣτο τέλος: σημείωσε την ε
+ ργασία ως «Ναι» στο AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day04@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261129
+DTEND;VALUE=DATE:20261130
+SUMMARY:ΑΗΚ Day 4: Lecture 4 - Κυκλώματα με ημιτονοε
+ ιδή διέγερση
+DESCRIPTION:Εργασία: Διάβασμα + φασιθέτες\, βασ
+ ικές ασκήσεις\nΑρχείο / πηγή: Lecture 4.pdf\nΗμε
+ ρήσιες σημειώσεις: Ημερήσιες Σημειώσεις
+ \\L04_Imitonoeidis.pdf\nΕβδομάδα 1 (Εβδ.1 - Βασικά)\nΣτ
+ ο τέλος: σημείωσε την εργασία ως «Ναι» στ
+ ο AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day05@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261130
+DTEND;VALUE=DATE:20261201
+SUMMARY:ΑΗΚ Day 5: Lecture 5 - Πεδίο συχνότητας
+DESCRIPTION:Εργασία: Διάβασμα + Ασκήσεις φροντ
+ ιστηρίου Δ5\nΑρχείο / πηγή: Διάλεξη 5 - Ασκή
+ σεις φροντιστηρίου\nΗμερήσιες σημειώσει
+ ς: Ημερήσιες Σημειώσεις\\L05_PedioSyxnotitas.pdf\nΕβ
+ δομάδα 1 (Εβδ.1 - Βασικά)\nΣτο τέλος: σημείω
+ σε την εργασία ως «Ναι» στο AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day06@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261201
+DTEND;VALUE=DATE:20261202
+SUMMARY:ΑΗΚ Day 6: Lecture 5 - Εφαρμογές
+DESCRIPTION:Εργασία: Λύση εφαρμογών Δ5 + επανάλ
+ ηψη λαθών\nΑρχείο / πηγή: Διάλεξη 5 - Εφαρμ
+ ογές\nΗμερήσιες σημειώσεις: Ημερήσιες Ση
+ μειώσεις\\L05_PedioSyxnotitas.pdf\nΕβδομάδα 1 (Εβδ.1 - 
+ Βασικά)\nΣτο τέλος: σημείωσε την εργασία 
+ ως «Ναι» στο AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day07@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261202
+DTEND;VALUE=DATE:20261203
+SUMMARY:ΑΗΚ Day 7: Lecture 6 - Απόκριση συχνότητας
+DESCRIPTION:Εργασία: Διάβασμα + ασκήσεις από ση
+ μειώσεις/βιβλίο\nΑρχείο / πηγή: Lecture 6.pdf\nΗ
+ μερήσιες σημειώσεις: Ημερήσιες Σημειώσε
+ ις\\L06_ApokrisiSyxnotitas.pdf\nΕβδομάδα 1 (Εβδ.1 - Βασι
+ κά)\nΣτο τέλος: σημείωσε την εργασία ως «Ν
+ αι» στο AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day08@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261203
+DTEND;VALUE=DATE:20261204
+SUMMARY:ΑΗΚ Day 8: Lecture 7 - Μέθοδος βρόχων & κόμβω
+ ν
+DESCRIPTION:Εργασία: Διάβασμα θεωρίας\nΑρχείο /
+  πηγή: Lecture 7.pdf\nΗμερήσιες σημειώσεις: Ημε
+ ρήσιες Σημειώσεις\\L07_VroxoiKomvoi.pdf\nΕβδομάδα 
+ 2 (Εβδ.2 - Πυρήνας)\nΣτο τέλος: σημείωσε την 
+ εργασία ως «Ναι» στο AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day09@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261204
+DTEND;VALUE=DATE:20261205
+SUMMARY:ΑΗΚ Day 9: Lecture 7 - Ασκήσεις
+DESCRIPTION:Εργασία: Όλες οι ασκήσεις φροντιστ
+ ηρίου Δ7\nΑρχείο / πηγή: Διάλεξη 7 - Ασκήσει
+ ς φροντιστηρίου\nΗμερήσιες σημειώσεις: Η
+ μερήσιες Σημειώσεις\\L07_VroxoiKomvoi.pdf\nΕβδομά
+ δα 2 (Εβδ.2 - Πυρήνας)\nΣτο τέλος: σημείωσε τ
+ ην εργασία ως «Ναι» στο AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day10@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261205
+DTEND;VALUE=DATE:20261206
+SUMMARY:ΑΗΚ Day 10: Lecture 8 - Θεωρήματα 1 (Thevenin/Norton)
+DESCRIPTION:Εργασία: Διάβασμα + μελέτη Thevenin_Method
+ ologia pdf\nΑρχείο / πηγή: Lecture 8.pdf + Thevenin_Methodologia
+ _Askiseis.pdf\nΗμερήσιες σημειώσεις: Ημερήσιες
+  Σημειώσεις\\L08_Thevenin.pdf\nΕβδομάδα 2 (Εβδ.2 - Π
+ υρήνας)\nΣτο τέλος: σημείωσε την εργασία 
+ ως «Ναι» στο AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day11@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261206
+DTEND;VALUE=DATE:20261207
+SUMMARY:ΑΗΚ Day 11: Lecture 8 - Ασκήσεις
+DESCRIPTION:Εργασία: Ασκήσεις φροντιστηρίου Δ8
+  + έλεγχος με Λύσεις\nΑρχείο / πηγή: Διάλεξ
+ η 8 - Ασκήσεις φροντιστηρίου + Λύσεις/\nΗμε
+ ρήσιες σημειώσεις: Ημερήσιες Σημειώσεις
+ \\L08_Thevenin.pdf\nΕβδομάδα 2 (Εβδ.2 - Πυρήνας)\nΣτο
+  τέλος: σημείωσε την εργασία ως «Ναι» στο
+  AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day12@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261207
+DTEND;VALUE=DATE:20261208
+SUMMARY:ΑΗΚ Day 12: Lecture 9 - Θεωρήματα 2 (υπέρθεση 
+ κ.ά.)
+DESCRIPTION:Εργασία: Διάβασμα θεωρίας\nΑρχείο /
+  πηγή: Lecture 9.pdf\nΗμερήσιες σημειώσεις: Ημε
+ ρήσιες Σημειώσεις\\L09_Theoremata2.pdf\nΕβδομάδα 2
+  (Εβδ.2 - Πυρήνας)\nΣτο τέλος: σημείωσε την 
+ εργασία ως «Ναι» στο AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day13@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261208
+DTEND;VALUE=DATE:20261209
+SUMMARY:ΑΗΚ Day 13: Lecture 9 - Ασκήσεις
+DESCRIPTION:Εργασία: Ασκήσεις φροντιστηρίου Δ9
+  + έλεγχος με Λύσεις\nΑρχείο / πηγή: Διάλεξ
+ η 9 - Ασκήσεις φροντιστηρίου + Λύσεις/\nΗμε
+ ρήσιες σημειώσεις: Ημερήσιες Σημειώσεις
+ \\L09_Theoremata2.pdf\nΕβδομάδα 2 (Εβδ.2 - Πυρήνας)\nΣ
+ το τέλος: σημείωσε την εργασία ως «Ναι» σ
+ το AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day14@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261209
+DTEND;VALUE=DATE:20261210
+SUMMARY:ΑΗΚ Day 14: Επανάληψη Εβδ.2
+DESCRIPTION:Εργασία: Ξαναλύσε τις 3 δυσκολότερ
+ ες ασκήσεις Δ7-Δ9 χωρίς λύση μπροστά\nΑρχε
+ ίο / πηγή: -\nΕβδομάδα 2 (Εβδ.2 - Πυρήνας)\nΣτο
+  τέλος: σημείωσε την εργασία ως «Ναι» στο
+  AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day15@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261210
+DTEND;VALUE=DATE:20261211
+SUMMARY:ΑΗΚ Day 15: Lecture 10 - Μαγνητική σύζευξη & Μ
+ ετασχηματιστές
+DESCRIPTION:Εργασία: Διάβασμα θεωρίας\nΑρχείο /
+  πηγή: Lecture 10.pdf\nΗμερήσιες σημειώσεις: Ημε
+ ρήσιες Σημειώσεις\\L10_Syzeuxi.pdf\nΕβδομάδα 3 (Ε
+ βδ.3 - Ισχύς-Τριφασικά)\nΣτο τέλος: σημείωσ
+ ε την εργασία ως «Ναι» στο AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day16@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261211
+DTEND;VALUE=DATE:20261212
+SUMMARY:ΑΗΚ Day 16: Lecture 10 - Ασκήσεις
+DESCRIPTION:Εργασία: Ασκήσεις φροντιστηρίου Δ1
+ 0\nΑρχείο / πηγή: Διάλεξη 10 - Ασκήσεις φρον
+ τιστηρίου\nΗμερήσιες σημειώσεις: Ημερήσ
+ ιες Σημειώσεις\\L10_Syzeuxi.pdf\nΕβδομάδα 3 (Εβδ.3
+  - Ισχύς-Τριφασικά)\nΣτο τέλος: σημείωσε τ
+ ην εργασία ως «Ναι» στο AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day17@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261212
+DTEND;VALUE=DATE:20261213
+SUMMARY:ΑΗΚ Day 17: Lecture 11 - Ισχύς σε ημιτονοειδή 
+ διέγερση
+DESCRIPTION:Εργασία: Διάβασμα θεωρίας\nΑρχείο /
+  πηγή: Lecture 11.pdf\nΗμερήσιες σημειώσεις: Ημε
+ ρήσιες Σημειώσεις\\L11_Isxys.pdf\nΕβδομάδα 3 (Εβ
+ δ.3 - Ισχύς-Τριφασικά)\nΣτο τέλος: σημείωσε
+  την εργασία ως «Ναι» στο AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day18@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261213
+DTEND;VALUE=DATE:20261214
+SUMMARY:ΑΗΚ Day 18: Lecture 11 - Ασκήσεις
+DESCRIPTION:Εργασία: Ασκήσεις φροντιστηρίου Δ1
+ 1\nΑρχείο / πηγή: Διάλεξη 11 - Ασκήσεις φρον
+ τιστηρίου\nΗμερήσιες σημειώσεις: Ημερήσ
+ ιες Σημειώσεις\\L11_Isxys.pdf\nΕβδομάδα 3 (Εβδ.3 -
+  Ισχύς-Τριφασικά)\nΣτο τέλος: σημείωσε τη
+ ν εργασία ως «Ναι» στο AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day19@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261214
+DTEND;VALUE=DATE:20261215
+SUMMARY:ΑΗΚ Day 19: Lecture 12 - Τριφασικά κυκλώματα
+DESCRIPTION:Εργασία: Διάβασμα θεωρίας\nΑρχείο /
+  πηγή: Lecture 12.pdf\nΗμερήσιες σημειώσεις: Ημε
+ ρήσιες Σημειώσεις\\L12_Trifasika.pdf\nΕβδομάδα 3 (
+ Εβδ.3 - Ισχύς-Τριφασικά)\nΣτο τέλος: σημείω
+ σε την εργασία ως «Ναι» στο AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day20@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261215
+DTEND;VALUE=DATE:20261216
+SUMMARY:ΑΗΚ Day 20: Lecture 12 - Ασκήσεις
+DESCRIPTION:Εργασία: Ασκήσεις φροντιστηρίου Δ1
+ 2\nΑρχείο / πηγή: Διάλεξη 12 - Ασκήσεις φρον
+ τιστηρίου\nΗμερήσιες σημειώσεις: Ημερήσ
+ ιες Σημειώσεις\\L12_Trifasika.pdf\nΕβδομάδα 3 (Εβδ
+ .3 - Ισχύς-Τριφασικά)\nΣτο τέλος: σημείωσε 
+ την εργασία ως «Ναι» στο AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day21@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261216
+DTEND;VALUE=DATE:20261217
+SUMMARY:ΑΗΚ Day 21: Επανάληψη Εβδ.3 + 1ο παλιό θέμ
+ α
+DESCRIPTION:Εργασία: Λύσε ΑΗΚ_Ιούνιος 2022 εστιά
+ ζοντας σε Δ10-12\nΑρχείο / πηγή: Παλιά θέματ
+ α/ΑΗΚ_Ιούνιος 2022.pdf\nΕβδομάδα 3 (Εβδ.3 - Ισχύ
+ ς-Τριφασικά)\nΣτο τέλος: σημείωσε την εργ
+ ασία ως «Ναι» στο AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day22@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261217
+DTEND;VALUE=DATE:20261218
+SUMMARY:ΑΗΚ Day 22: Lecture 13 - Τετράπολα
+DESCRIPTION:Εργασία: Διάβασμα θεωρίας\nΑρχείο /
+  πηγή: Lecture 13.pdf\nΗμερήσιες σημειώσεις: Ημε
+ ρήσιες Σημειώσεις\\L13_Tetrapola.pdf\nΕβδομάδα 4 (
+ Εβδ.4 - Τετράπολα & Εξετάσεις)\nΣτο τέλος: σ
+ ημείωσε την εργασία ως «Ναι» στο AHK_Study_Trac
+ ker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day23@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261218
+DTEND;VALUE=DATE:20261219
+SUMMARY:ΑΗΚ Day 23: Lecture 13 - Ασκήσεις & επανάληψη
+DESCRIPTION:Εργασία: Ασκήσεις τετραπόλων από σ
+ ημειώσεις/βιβλίο\nΑρχείο / πηγή: -\nΗμερήσ
+ ιες σημειώσεις: Ημερήσιες Σημειώσεις\\L13_
+ Tetrapola.pdf\nΕβδομάδα 4 (Εβδ.4 - Τετράπολα & Εξε
+ τάσεις)\nΣτο τέλος: σημείωσε την εργασία 
+ ως «Ναι» στο AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day24@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261219
+DTEND;VALUE=DATE:20261220
+SUMMARY:ΑΗΚ Day 24: Παλιό θέμα 2
+DESCRIPTION:Εργασία: ΑΗΚ_Σεπτέμβρης 2022 - υπό συ
+ νθήκες εξέτασης (χρόνος!)\nΑρχείο / πηγή: Π
+ αλιά θέματα/ΑΗΚ_Σεπτέμβρης 2022.pdf\nΕβδομάδ
+ α 4 (Εβδ.4 - Τετράπολα & Εξετάσεις)\nΣτο τέλο
+ ς: σημείωσε την εργασία ως «Ναι» στο AHK_Stud
+ y_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day25@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261220
+DTEND;VALUE=DATE:20261221
+SUMMARY:ΑΗΚ Day 25: Παλιό θέμα 3
+DESCRIPTION:Εργασία: AHK Ιούλιος 2024 - υπό συνθήκε
+ ς εξέτασης\nΑρχείο / πηγή: Παλιά θέματα/AHK 
+ Ιούλιος 2024 (1).pdf\nΕβδομάδα 4 (Εβδ.4 - Τετράπο
+ λα & Εξετάσεις)\nΣτο τέλος: σημείωσε την ε
+ ργασία ως «Ναι» στο AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day26@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261221
+DTEND;VALUE=DATE:20261222
+SUMMARY:ΑΗΚ Day 26: Παλιό θέμα 4
+DESCRIPTION:Εργασία: AHK Σεπτέμβριος 2024 - υπό συν
+ θήκες εξέτασης\nΑρχείο / πηγή: Παλιά θέμα
+ τα/AHK Σεπτέμβριος 2024.pdf\nΕβδομάδα 4 (Εβδ.4 - 
+ Τετράπολα & Εξετάσεις)\nΣτο τέλος: σημείω
+ σε την εργασία ως «Ναι» στο AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day27@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261222
+DTEND;VALUE=DATE:20261223
+SUMMARY:ΑΗΚ Day 27: Παλιό θέμα 5 & 6
+DESCRIPTION:Εργασία: AHK Ιούνιος 2025 + 2023 (2) - διόρθ
+ ωση λαθών\nΑρχείο / πηγή: Παλιά θέματα/AHK Ι
+ ούνιος 2025.pdf\, 2023 (2).pdf\nΕβδομάδα 4 (Εβδ.4 - Τε
+ τράπολα & Εξετάσεις)\nΣτο τέλος: σημείωσε 
+ την εργασία ως «Ναι» στο AHK_Study_Tracker.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+BEGIN:VEVENT
+UID:ahk-2026-day28@ahk-study-plan
+DTSTAMP:20261125T151052Z
+DTSTART;VALUE=DATE:20261223
+DTEND;VALUE=DATE:20261224
+SUMMARY:ΑΗΚ Day 28: Τελική επανάληψη
+DESCRIPTION:Εργασία: Thevenin methodology\, formulasheet\, αδύν
+ αμα σημεία από όλες τις εβδομάδες\nΑρχεί
+ ο / πηγή: Thevenin_Methodologia_Askiseis.pdf\nΕβδομάδα 4 (Ε
+ βδ.4 - Τετράπολα & Εξετάσεις)\nΣτο τέλος: ση
+ μείωσε την εργασία ως «Ναι» στο AHK_Study_Tracke
+ r.xlsx.
+TRANSP:TRANSPARENT
+END:VEVENT
+END:VCALENDAR

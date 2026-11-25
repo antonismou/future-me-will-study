@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="el">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1e3a8a">
+  <title>{% block title %}Διάβασμα{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/">📚 Διάβασμα</a>
+  {% if user %}
+  <form method="post" action="/logout" class="inline">
+    <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+    <button class="link small" type="submit">Αποσύνδεση</button>
+  </form>
+  {% endif %}
+</header>
+<main class="wrap">
+  {% if flash %}<div class="flash {{ flash.kind }}" role="status">{{ flash.msg }}</div>{% endif %}
+  {% block content %}{% endblock %}
+</main>
+{% if user %}
+<nav class="tabbar" aria-label="Κύρια πλοήγηση">
+  <a href="/" class="{{ 'on' if path == '/' }}"><span>🏠</span>Σήμερα</a>
+  <a href="/overdue" class="{{ 'on' if path == '/overdue' }}"><span>⏰</span>Πίσω</a>
+  <a href="/courses" class="{{ 'on' if path.startswith('/c') }}"><span>📘</span>Μαθήματα</a>
+  <a href="/settings" class="{{ 'on' if path == '/settings' }}"><span>⚙️</span>Ρυθμίσεις</a>
+</nav>
+{% endif %}
+</body>
+</html>

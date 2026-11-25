@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Ρυθμίσεις{% endblock %}
+{% block content %}
+<h1>Ρυθμίσεις ειδοποιήσεων</h1>
+<p class="muted small">Οι αλλαγές ισχύουν αμέσως (ο scheduler τις διαβάζει κάθε 30″).</p>
+
+<form method="post" action="/settings" class="stack">
+  <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+
+  <section class="card stack">
+    <h2>🕒 Χρόνος</h2>
+    <label>Ζώνη ώρας
+      <select name="timezone">{% for z in timezones %}<option {{ 'selected' if z == s.timezone }}>{{ z }}</option>{% endfor %}</select></label>
+    <fieldset>
+      <legend>Ημέρες που στέλνονται ειδοποιήσεις</legend>
+      <div class="days">
+      {% for d in weekdays %}<label class="check"><input type="checkbox" name="weekdays" value="{{ loop.index0 }}" {{ 'checked' if loop.index0 in s.weekdays }}> {{ d[:3] }}</label>{% endfor %}
+      </div>
+    </fieldset>
+    <label>Παράθυρο ανοχής μετά από restart (λεπτά)
+      <input type="number" name="grace_minutes" min="0" max="720" value="{{ s.grace_minutes }}"></label>
+    <p class="muted small">Αν ο server ήταν κάτω την ώρα μιας ειδοποίησης, στέλνεται όταν ξανασηκωθεί μόνο μέσα σε αυτό το διάστημα.</p>
+  </section>
+
+  <section class="card stack">
+    <h2>🌅 Πρωινή</h2>
+    <label class="check"><input type="checkbox" name="morning_enabled" {{ 'checked' if s.morning_enabled }}> Ενεργή</label>
+    <label>Ώρα <input type="time" name="morning_time" value="{{ s.morning_time }}" required></label>
+    <label class="check"><input type="checkbox" name="overdue_enabled" {{ 'checked' if s.overdue_enabled }}> Ανέφερε όσα έμειναν πίσω</label>
+    <label class="check"><input type="checkbox" name="countdown_enabled" {{ 'checked' if s.countdown_enabled }}> Αντίστροφη μέτρηση εξέτασης</label>
+    <label>Προτεραιότητα
+      <select name="priority">{% for p in range(1, 6) %}<option value="{{ p }}" {{ 'selected' if p == s.priority }}>{{ p }}{{ ' (κανονική)' if p == 3 }}{{ ' (επείγουσα)' if p == 5 }}</option>{% endfor %}</select></label>
+  </section>
+
+  <section class="card stack">
+    <h2>🌙 Βραδινές υπενθυμίσεις <span class="muted small">(μόνο αν η εργασία δεν είναι «Ναι»)</span></h2>
+    <label class="check"><input type="checkbox" name="evening_enabled" {{ 'checked' if s.evening_enabled }}> Ενεργές</label>
+    <label>Πλήθος
+      <select name="evening_count" data-evening-count>{% for n in range(0, 5) %}<option {{ 'selected' if n == s.evening_times | length }}>{{ n }}</option>{% endfor %}</select></label>
+    <div class="grid2">
+    {% for i in evening_slots %}
+      <label data-evening-slot="{{ i }}">Υπενθύμιση {{ i + 1 }}
+        <input type="time" name="evening_time_{{ i }}" value="{{ s.evening_times[i] if i < s.evening_times | length else ['20:00', '22:30', '21:00', '23:00'][i] }}"></label>
+    {% endfor %}
+    </div>
+    <label class="check"><input type="checkbox" name="streak_enabled" {{ 'checked' if s.streak_enabled }}> Δείξε το streak</label>
+    <label>Προτεραιότητα
+      <select name="evening_priority">{% for p in range(1, 6) %}<option value="{{ p }}" {{ 'selected' if p == s.evening_priority }}>{{ p }}</option>{% endfor %}</select></label>
+  </section>
+
+  <section class="card stack">
+    <h2>📊 Εβδομαδιαία σύνοψη</h2>
+    <label class="check"><input type="checkbox" name="weekly_enabled" {{ 'checked' if s.weekly_enabled }}> Ενεργή</label>
+    <div class="grid2">
+      <label>Ημέρα <select name="weekly_day">{% for d in weekdays %}<option value="{{ loop.index0 }}" {{ 'selected' if loop.index0 == s.weekly_day }}>{{ d }}</option>{% endfor %}</select></label>
+      <label>Ώρα <input type="time" name="weekly_time" value="{{ s.weekly_time }}" required></label>
+    </div>
+  </section>
+
+  <section class="card stack">
+    <h2>🤫 Ώρες ησυχίας</h2>
+    <label class="check"><input type="checkbox" name="quiet_enabled" {{ 'checked' if s.quiet_enabled }}> Ενεργές</label>
+    <div class="grid2">
+      <label>Από <input type="time" name="quiet_start" value="{{ s.quiet_start }}" required></label>
+      <label>Έως <input type="time" name="quiet_end" value="{{ s.quiet_end }}" required></label>
+    </div>
+    <p class="muted small">Ειδοποιήσεις που πέφτουν μέσα στις ώρες ησυχίας παραλείπονται (καταγράφονται στο ιστορικό).</p>
+  </section>
+
+  <section class="card stack">
+    <h2>📡 ntfy</h2>
+    <label>Server (για αποστολή) <input name="ntfy_url" value="{{ s.ntfy_url }}" required></label>
+    <p class="muted small">Μέσα στο docker compose: <code>http://ntfy</code>. Το κινητό συνδέεται στο δημόσιο URL του ntfy σου.</p>
+    <label>Topic <input name="ntfy_topic" value="{{ s.ntfy_topic }}" required pattern="[A-Za-z0-9_\-]{1,64}"></label>
+    <label>Access token {% if has_token %}<span class="pill">ορισμένο{{ ' από .env' if token_from_env }}</span>{% endif %}
+      <input name="ntfy_token" type="password" autocomplete="off" placeholder="{{ 'άφησέ το κενό για να μείνει ως έχει' if has_token else 'tk_…' }}"></label>
+    {% if has_token and not token_from_env %}<label class="check"><input type="checkbox" name="ntfy_token_clear"> Αφαίρεση token</label>{% endif %}
+  </section>
+
+  <button class="btn primary sticky-save" type="submit">💾 Αποθήκευση ρυθμίσεων</button>
+</form>
+
+<section class="card stack">
+  <h2>🔔 Δοκιμή</h2>
+  <form method="post" action="/settings/test">
+    <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+    <button class="btn" type="submit">Στείλε δοκιμαστική ειδοποίηση</button>
+  </form>
+  <p class="muted small">Αν σήμερα υπάρχει εργασία, η δοκιμή έχει τα πραγματικά κουμπιά «Έγινε / Σε εξέλιξη / Αναβολή». Τα κουμπιά καλούν το <code>{{ base_url }}</code>.</p>
+</section>
+
+<section class="card">
+  <h2>🧾 Ιστορικό</h2>
+  {% if not log %}<p class="muted">Δεν έχει σταλεί τίποτα ακόμα.</p>{% endif %}
+  <ul class="log">
+  {% for l in log %}
+    <li><span class="badge {{ {'sent': 'done', 'failed': 'todo', 'skipped': '', 'pending': 'progress'}[l.status] }}">{{ {'sent': 'στάλθηκε', 'failed': 'αποτυχία', 'skipped': 'παραλείφθηκε', 'pending': 'σε αναμονή'}[l.status] }}</span>
+      <span class="small">{{ l.local_date | gdate }} · {{ {'morning': 'Πρωινή', 'evening': 'Βραδινή', 'weekly': 'Σύνοψη'}[l.kind] }} · {{ l.course_name or '' }}</span>
+      {% if l.title %}<div class="small">{{ l.title }}</div>{% endif %}
+      {% if l.error %}<div class="small muted">{{ 'ώρες ησυχίας' if l.error == 'quiet' else l.error }}</div>{% endif %}
+    </li>
+  {% endfor %}
+  </ul>
+</section>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Σφάλμα {{ code }}{% endblock %}
+{% block content %}
+<section class="card narrow">
+  <h1>Σφάλμα {{ code }}</h1>
+  <p>{{ detail }}</p>
+  <p><a href="/">← Αρχική</a></p>
+</section>
+{% endblock %}
