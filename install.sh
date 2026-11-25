@@ -499,7 +499,7 @@ from app.settings_store import get_settings
 from app import notify
 conn = connect()
 s = get_settings(conn)
-notify.publish(s, {"title": "Η εγκατάσταση ολοκληρώθηκε", "message": "Οι ειδοποιήσεις φτάνουν σωστά στο κινητό.",
+notify.publish(s, {"title": "future-me-will-study · Η εγκατάσταση ολοκληρώθηκε", "message": "Οι ειδοποιήσεις φτάνουν σωστά στο κινητό.",
                    "tags": ["white_check_mark"]})
 PY
 then ok "Στάλθηκε στο topic '$TOPIC'. Θα τη δεις μόλις συνδέσεις το κινητό."

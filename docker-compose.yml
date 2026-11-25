@@ -1,4 +1,4 @@
-# Study planner + self-hosted ntfy, πίσω από Nginx Proxy Manager (κοινό docker network, χωρίς ports στο host).
+# future-me-will-study + self-hosted ntfy, πίσω από Nginx Proxy Manager (κοινό docker network, χωρίς ports στο host).
 name: study
 
 # Όριο στα logs κάθε container (αλλιώς μεγαλώνουν χωρίς τέλος και γεμίζουν τον δίσκο).

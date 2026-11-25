@@ -131,7 +131,7 @@ def test_message(conn: sqlite3.Connection, s: dict[str, Any]) -> dict[str, Any]:
     row = conn.execute(
         """SELECT t.*, c.name AS course_name FROM task t JOIN course c ON c.id=t.course_id
            WHERE c.active=1 AND t.date=? AND t.status!='Ναι' ORDER BY t.id LIMIT 1""", (today.isoformat(),)).fetchone()
-    msg: dict[str, Any] = {"title": "🔔 Δοκιμαστική ειδοποίηση",
+    msg: dict[str, Any] = {"title": "🔔 future-me-will-study · Δοκιμαστική ειδοποίηση",
                            "message": "Οι ειδοποιήσεις λειτουργούν σωστά.",
                            "priority": int(s["priority"]), "tags": ["white_check_mark"],
                            "click": f"{get_config().base_url}/"}
