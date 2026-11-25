@@ -44,7 +44,7 @@ def test_import_upload_and_plan(logged_in):
     loc = _import_course(logged_in)
     assert loc == "/c/aik"
     page = logged_in.get(loc).text
-    assert "Lecture 7 - Μέθοδος βρόχων" in page and "0/28" in page
+    assert "Lecture 7 - Μέθοδος βρόχων" in page and "0 από 28" in page
     files_page = logged_in.get("/c/aik/files").text
     pdf = b"%PDF-1.4\n%test\n"
     r = logged_in.post("/c/aik/files", data={"csrf": csrf_from(files_page), "category": "Ημερήσιες σημειώσεις"},

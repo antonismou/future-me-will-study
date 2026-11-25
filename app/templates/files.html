@@ -1,62 +1,69 @@
 {% extends "base.html" %}
-{% block title %}{{ course.name }} · Αρχεία{% endblock %}
+{% from "macros.html" import course_header with context %}
+{% block title %}Αρχεία — {{ course.name }}{% endblock %}
 {% block content %}
-<h1>Αρχεία <span class="muted">· <a href="/c/{{ course.slug }}">{{ course.name }}</a></span></h1>
-<p class="muted small">{{ count }} αρχεία · {{ total | size }}</p>
+{{ course_header(course, 'files', count ~ ' αρχεία · ' ~ (total | size)) }}
 
 <details class="card" {{ 'open' if not count }}>
-  <summary>⬆️ Ανέβασμα αρχείων</summary>
+  <summary>Ανέβασμα αρχείων {{ icon('chevron') }}</summary>
   <form method="post" action="/c/{{ course.slug }}/files" enctype="multipart/form-data" class="stack">
     <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
-    <label>Κατηγορία
-      <select name="category">{% for c in categories %}<option>{{ c }}</option>{% endfor %}</select></label>
-    <label>Ομάδα / υποφάκελος (προαιρετικό, π.χ. «Διάλεξη 7 - Ασκήσεις φροντιστηρίου»)
-      <input name="grp" maxlength="120"></label>
-    <label>Αρχεία (PDF, εικόνες, txt/md · έως {{ max_mb }} MB το καθένα · πολλαπλή επιλογή)
-      <input type="file" name="files" multiple required accept=".pdf,.jpg,.jpeg,.png,.webp,.gif,.txt,.md"></label>
-    <button class="btn primary" type="submit">Ανέβασμα</button>
-    <p class="muted small">Μετά το ανέβασμα τα αρχεία συνδέονται αυτόματα με τις εργασίες βάσει ονόματος (π.χ. L07_…, «Lecture 7», όνομα ομάδας).</p>
+    <div class="grid2">
+      <label>Κατηγορία
+        <select name="category">{% for c in categories %}<option>{{ c }}</option>{% endfor %}</select></label>
+      <label>Ομάδα <input name="grp" maxlength="120" placeholder="Προαιρετικό"></label>
+    </div>
+    <label>Αρχεία <input type="file" name="files" multiple required accept=".pdf,.jpg,.jpeg,.png,.webp,.gif,.txt,.md">
+      <span class="hint">PDF, εικόνες ή κείμενο, έως {{ max_mb }} MB το καθένα. Συνδέονται αυτόματα με τις εργασίες βάσει ονόματος (π.χ. L07, «Lecture 7» ή το όνομα της ομάδας).</span></label>
+    <div><button class="btn primary" type="submit">Ανέβασμα</button></div>
   </form>
 </details>
 
 {% for cat, groups in tree %}
-<details class="week" open>
-  <summary><span>{{ cat }}</span><span class="muted small">{{ groups.values() | map('length') | sum }}</span></summary>
+<section class="section">
+  <div class="section-head"><h2>{{ cat }}</h2><span class="meta">{{ groups.values() | map('length') | sum }}</span></div>
+  <div class="panel">
   {% for grp, files in groups.items() %}
-    {% if grp %}<h3 class="grp">{{ grp }}</h3>{% endif %}
+    {% if grp %}<div class="grp">{{ grp }}</div>{% endif %}
     {% if files | selectattr('mime', 'in', ['image/jpeg', 'image/png', 'image/webp', 'image/gif']) | list %}
     <div class="gallery">
       {% for f in files if f.mime.startswith('image/') %}<a href="/files/{{ f.id }}" target="_blank" rel="noopener"><img src="/files/{{ f.id }}" alt="{{ f.name }}" loading="lazy"></a>{% endfor %}
     </div>
     {% endif %}
-    <ul class="filelist">
+    <ul class="filelist list">
     {% for f in files %}
       <li>
-        <a href="/files/{{ f.id }}" target="_blank" rel="noopener">{{ '📄' if f.mime == 'application/pdf' else '🖼️' if f.mime.startswith('image') else '📝' }} {{ f.name }}</a>
-        <span class="muted small">{{ f.size | size }}</span>
-        <details class="inline-details"><summary class="small">⋯</summary>
-          <form method="post" action="/files/{{ f.id }}/edit" class="row wrap-gap">
-            <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
-            <select name="category">{% for c in categories %}<option {{ 'selected' if c == f.category }}>{{ c }}</option>{% endfor %}</select>
-            <input name="grp" value="{{ f.grp }}" placeholder="ομάδα" maxlength="120">
-            <button class="btn small" type="submit">Αποθήκευση</button>
-          </form>
-          <form method="post" action="/files/{{ f.id }}/delete" data-confirm="Διαγραφή του {{ f.name }};">
-            <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
-            <button class="btn danger small" type="submit">Διαγραφή</button>
-          </form>
+        <details class="fmenu">
+          <summary class="filerow">
+            {{ icon('image' if f.mime.startswith('image') else 'file') }}
+            <span class="fname"><a href="/files/{{ f.id }}" target="_blank" rel="noopener">{{ f.name }}</a><small>{{ f.size | size }}</small></span>
+            <span class="icon-btn" title="Επιλογές">{{ icon('dots', 'dots') }}</span>
+          </summary>
+          <div class="fmenu-body">
+            <form method="post" action="/files/{{ f.id }}/edit">
+              <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+              <select name="category" aria-label="Κατηγορία">{% for c in categories %}<option {{ 'selected' if c == f.category }}>{{ c }}</option>{% endfor %}</select>
+              <input name="grp" value="{{ f.grp }}" placeholder="Ομάδα" maxlength="120" aria-label="Ομάδα">
+              <button class="btn small" type="submit">Αποθήκευση</button>
+            </form>
+            <form method="post" action="/files/{{ f.id }}/delete" data-confirm="Διαγραφή του {{ f.name }};">
+              <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+              <button class="btn small danger" type="submit">Διαγραφή</button>
+            </form>
+          </div>
         </details>
       </li>
     {% endfor %}
     </ul>
   {% endfor %}
-</details>
+  </div>
+</section>
 {% endfor %}
 
 {% if count %}
 <form method="post" action="/c/{{ course.slug }}/relink">
   <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
-  <button class="btn" type="submit">🔗 Ξανά αυτόματη σύνδεση με εργασίες</button>
+  <button class="btn ghost small" type="submit">{{ icon('link') }}Επανάληψη αυτόματης σύνδεσης</button>
 </form>
 {% endif %}
 {% endblock %}

@@ -1,54 +1,64 @@
 {% extends "base.html" %}
-{% block title %}{{ course.name }} · Ρυθμίσεις{% endblock %}
+{% from "macros.html" import course_header with context %}
+{% block title %}Ρυθμίσεις — {{ course.name }}{% endblock %}
 {% block content %}
-<h1>Ρυθμίσεις μαθήματος <span class="muted">· <a href="/c/{{ course.slug }}">{{ course.name }}</a></span></h1>
+{{ course_header(course, 'settings') }}
 
-<form method="post" action="/c/{{ course.slug }}/settings" class="card stack">
-  <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
-  <label>Όνομα <input name="name" required maxlength="120" value="{{ course.name }}"></label>
-  <div class="grid2">
-    <label>Ημερομηνία εξέτασης <input type="date" name="exam_date" value="{{ course.exam_date or '' }}"></label>
-    <label>Χρώμα <input type="color" name="color" value="{{ course.color }}"></label>
-  </div>
-  <label class="check"><input type="checkbox" name="active" {{ 'checked' if course.active }}> Ενεργό (εμφανίζεται στο «Σήμερα»)</label>
-  <label class="check"><input type="checkbox" name="notify_on" {{ 'checked' if course.notify }}> Ειδοποιήσεις για αυτό το μάθημα</label>
-  <button class="btn primary" type="submit">Αποθήκευση</button>
-</form>
-
-<section class="card">
-  <h2>⬇️ Εξαγωγή προόδου</h2>
-  <div class="row wrap-gap">
-    {% if course.template_path %}
-    <a class="btn" href="/c/{{ course.slug }}/export.xlsx">📊 xlsx (το αρχικό tracker, ενημερωμένο)</a>
-    <a class="btn" href="/c/{{ course.slug }}/export.xlsx?kind=new">📊 νέο xlsx</a>
-    {% else %}
-    <a class="btn" href="/c/{{ course.slug }}/export.xlsx">📊 xlsx</a>
-    {% endif %}
-    <a class="btn" href="/c/{{ course.slug }}/export.csv">🧾 CSV</a>
-  </div>
-  {% if course.template_path %}<p class="muted small">Το «αρχικό tracker» κρατά formulas, Dashboard, γράφημα και χρώματα· ενημερώνονται οι στήλες Ολοκληρώθηκε/Σημειώσεις (και η ημερομηνία όσων αναβλήθηκαν). Εργασίες που πρόσθεσες από το dashboard υπάρχουν στο «νέο xlsx» και στο CSV.</p>{% endif %}
+<section class="section">
+  <div class="section-head"><h2>Γενικά</h2></div>
+  <form method="post" action="/c/{{ course.slug }}/settings" class="card stack">
+    <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+    <label>Όνομα <input name="name" required maxlength="120" value="{{ course.name }}"></label>
+    <div class="grid2">
+      <label>Ημερομηνία εξέτασης <input type="date" name="exam_date" value="{{ course.exam_date or '' }}"></label>
+      <label>Χρώμα <input type="color" name="color" value="{{ course.color }}"></label>
+    </div>
+    <hr class="divider">
+    <label class="toggle"><span>Ενεργό<br><span class="hint">Εμφανίζεται στη σελίδα «Σήμερα»</span></span><input type="checkbox" name="active" {{ 'checked' if course.active }}></label>
+    <label class="toggle"><span>Ειδοποιήσεις<br><span class="hint">Στέλνονται ειδοποιήσεις για αυτό το μάθημα</span></span><input type="checkbox" name="notify_on" {{ 'checked' if course.notify }}></label>
+    <div><button class="btn primary" type="submit">Αποθήκευση</button></div>
+  </form>
 </section>
 
-<section class="card">
-  <h2>⬆️ Εισαγωγή / ενημέρωση από xlsx</h2>
-  <form method="post" action="/c/{{ course.slug }}/import" enctype="multipart/form-data" class="stack">
+<section class="section">
+  <div class="section-head"><h2>Εξαγωγή</h2></div>
+  <div class="card stack">
+    <div class="row wrap-gap">
+      {% if course.template_path %}
+      <a class="btn" href="/c/{{ course.slug }}/export.xlsx">{{ icon('download') }}Αρχικό xlsx</a>
+      <a class="btn" href="/c/{{ course.slug }}/export.xlsx?kind=new">{{ icon('download') }}Νέο xlsx</a>
+      {% else %}
+      <a class="btn" href="/c/{{ course.slug }}/export.xlsx">{{ icon('download') }}xlsx</a>
+      {% endif %}
+      <a class="btn" href="/c/{{ course.slug }}/export.csv">{{ icon('download') }}CSV</a>
+    </div>
+    {% if course.template_path %}<p class="hint">Το αρχικό xlsx κρατά formulas, Dashboard, γράφημα και μορφοποίηση. Ενημερώνονται οι στήλες «Ολοκληρώθηκε» και «Σημειώσεις», καθώς και η ημερομηνία όσων μεταφέρθηκαν. Εργασίες που προστέθηκαν από εδώ περιλαμβάνονται στο νέο xlsx και στο CSV.</p>{% endif %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head"><h2>Εισαγωγή από xlsx</h2></div>
+  <form method="post" action="/c/{{ course.slug }}/import" enctype="multipart/form-data" class="card stack">
     <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
-    <label>xlsx <input type="file" name="xlsx" accept=".xlsx" required></label>
-    <label>.ics (προαιρετικό) <input type="file" name="ics" accept=".ics"></label>
-    <label>Έτος (αν δεν αναγράφεται) <input name="year" inputmode="numeric" pattern="\d{4}" placeholder="αυτόματα"></label>
-    <label class="check"><input type="radio" name="mode" value="merge" checked> Κράτα την πρόοδο της εφαρμογής (προτείνεται)</label>
-    <label class="check"><input type="radio" name="mode" value="replace"> Πάρε κατάσταση & σημειώσεις από το xlsx</label>
-    <button class="btn" type="submit">Εισαγωγή</button>
+    <label>Πλάνο (xlsx) <input type="file" name="xlsx" accept=".xlsx" required></label>
+    <label>Ημερολόγιο (ics) <input type="file" name="ics" accept=".ics"><span class="hint">Προαιρετικό</span></label>
+    <label>Έτος <input name="year" inputmode="numeric" pattern="\d{4}" placeholder="Αυτόματα"></label>
+    <fieldset>
+      <legend>Υπάρχουσα πρόοδος</legend>
+      <label class="check"><input type="radio" name="mode" value="merge" checked> Διατήρηση της προόδου της εφαρμογής</label>
+      <label class="check"><input type="radio" name="mode" value="replace"> Αντικατάσταση με τις τιμές του xlsx</label>
+    </fieldset>
+    <div><button class="btn" type="submit">Εισαγωγή</button></div>
   </form>
 </section>
 
 <details class="card danger-zone">
-  <summary>🗑️ Διαγραφή μαθήματος</summary>
+  <summary>Διαγραφή μαθήματος {{ icon('chevron') }}</summary>
   <form method="post" action="/c/{{ course.slug }}/delete" class="stack">
     <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
-    <p>Διαγράφονται οριστικά οι εργασίες, η πρόοδος και τα αρχεία του μαθήματος. Κάνε πρώτα εξαγωγή.</p>
-    <label>Γράψε «{{ course.name }}» για επιβεβαίωση <input name="confirm" autocomplete="off"></label>
-    <button class="btn danger" type="submit">Οριστική διαγραφή</button>
+    <p class="muted small">Διαγράφονται οριστικά οι εργασίες, η πρόοδος και τα αρχεία του μαθήματος. Κάνε πρώτα εξαγωγή.</p>
+    <label>Πληκτρολόγησε «{{ course.name }}» για επιβεβαίωση <input name="confirm" autocomplete="off"></label>
+    <div><button class="btn danger" type="submit">Οριστική διαγραφή</button></div>
   </form>
 </details>
 {% endblock %}

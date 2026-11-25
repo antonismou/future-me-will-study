@@ -1,62 +1,115 @@
 {% macro bar(pct, color=None) -%}
-<div class="bar" role="progressbar" aria-valuenow="{{ pct }}" aria-valuemin="0" aria-valuemax="100">
-  <span data-pct="{{ pct }}" {% if color %}data-color="{{ color }}"{% endif %}></span>
+<div class="bar" role="progressbar" aria-valuenow="{{ pct }}" aria-valuemin="0" aria-valuemax="100" {% if color %}data-color="{{ color }}"{% endif %}><span data-pct="{{ pct }}"></span></div>
+{%- endmacro %}
+
+{% macro course_header(course, active, sub='') -%}
+<div class="page-head">
+  <a class="crumb" href="/courses">{{ icon('chevron') }}Μαθήματα</a>
+  <div class="head-row">
+    <h1 class="course-name" data-color="{{ course.color }}"><span class="dot"></span>{{ course.name }}</h1>
+    {% if caller %}{{ caller() }}{% endif %}
+  </div>
+  {% if sub %}<p class="sub">{{ sub }}</p>{% endif %}
+</div>
+<nav class="subnav" aria-label="Ενότητες μαθήματος">
+  <a href="/c/{{ course.slug }}" class="{{ 'on' if active == 'plan' }}">Πλάνο</a>
+  <a href="/c/{{ course.slug }}/files" class="{{ 'on' if active == 'files' }}">Αρχεία</a>
+  <a href="/c/{{ course.slug }}/settings" class="{{ 'on' if active == 'settings' }}">Ρυθμίσεις</a>
+</nav>
+{%- endmacro %}
+
+{% macro file_links(files) -%}
+{% if files %}
+<ul class="files">
+  {% for f in files %}
+  <li><a href="/files/{{ f.id }}" target="_blank" rel="noopener">{{ icon('image' if f.mime.startswith('image') else 'file') }}<span>{{ f.name }}</span><em>{{ 'κύριο' if f.is_primary else '' }}</em></a></li>
+  {% endfor %}
+</ul>
+{% endif %}
+{%- endmacro %}
+
+{% macro status_seg(t, next) -%}
+<form method="post" action="/tasks/{{ t.id }}/status" class="seg" role="group" aria-label="Κατάσταση">
+  <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+  <input type="hidden" name="next" value="{{ next }}#task-{{ t.id }}">
+  <button type="submit" name="status" value="Όχι" class="{{ 'on' if t.status == 'Όχι' }}">Εκκρεμεί</button>
+  <button type="submit" name="status" value="Σε εξέλιξη" class="{{ 'on' if t.status == 'Σε εξέλιξη' }}">Σε εξέλιξη</button>
+  <button type="submit" name="status" value="Ναι" class="{{ 'on' if t.status == 'Ναι' }}">Έγινε</button>
+</form>
+{%- endmacro %}
+
+{% macro task_extra(t, next, tomorrow) -%}
+<div class="item-extra">
+  <form method="post" action="/tasks/{{ t.id }}/notes">
+    <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+    <input type="hidden" name="next" value="{{ next }}#task-{{ t.id }}">
+    <label>Σημειώσεις
+      <textarea name="notes" rows="3" placeholder="Τι σε δυσκόλεψε; Θα τα δεις στην τελική επανάληψη.">{{ t.notes }}</textarea></label>
+    <button class="btn small" type="submit">Αποθήκευση</button>
+  </form>
+  {% if t.status != 'Ναι' %}
+  <form method="post" action="/tasks/{{ t.id }}/postpone" class="row end">
+    <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+    <input type="hidden" name="next" value="{{ next }}">
+    <label>Μεταφορά σε <input type="date" name="new_date" value="{{ tomorrow.isoformat() }}"></label>
+    <button class="btn" type="submit">Μεταφορά</button>
+  </form>
+  {% endif %}
+  <a class="linkish" href="/tasks/{{ t.id }}/edit">Επεξεργασία εργασίας</a>
 </div>
 {%- endmacro %}
 
-{% macro task_card(t, files, next, tomorrow, show_course=False, compact=False) -%}
+{# Εργασία σε λίστα (Σήμερα / Εκκρεμότητες) #}
+{% macro task_item(t, files, next, tomorrow, show_course=False) -%}
 {% set cls = status_class[t.status] %}
-<article class="task {{ cls }}" id="task-{{ t.id }}">
-  <div class="task-head">
+<article class="item {{ cls }}" id="task-{{ t.id }}">
+  <div class="item-head">
     <div>
-      {% if show_course %}<a class="chip" href="/c/{{ t.course_slug }}" data-color="{{ t.course_color }}">{{ t.course_name }}</a>{% endif %}
-      <span class="muted small">{% if t.day_no %}Day {{ t.day_no }} · {% endif %}{{ t.date | gdate }}
-        {% if t.original_date %} · ↪ από {{ t.original_date | gdate }}{% endif %}</span>
-      <h3>{{ t.topic or 'Εργασία' }}</h3>
+      <h3 class="item-title">{{ t.topic or 'Εργασία' }}</h3>
+      <p class="item-meta">
+        {% if show_course %}<a href="/c/{{ t.course_slug }}">{{ t.course_name }}</a> · {% endif %}
+        {% if t.day_no %}Ημέρα {{ t.day_no }} · {% endif %}{{ t.date | gdate }}{% if t.original_date %} · μεταφέρθηκε από {{ t.original_date | gdate }}{% endif %}
+      </p>
     </div>
-    <span class="badge {{ cls }}">{{ t.status }}</span>
+    <span class="state {{ cls }}">{{ status_label[t.status] }}</span>
   </div>
-  {% if t.description %}<p>{{ t.description }}</p>{% endif %}
-  {% if t.source and t.source != '-' %}<p class="muted small">📂 {{ t.source }}</p>{% endif %}
-  {% if files %}
-  <ul class="files">
-    {% for f in files %}
-    <li><a href="/files/{{ f.id }}" target="_blank" rel="noopener">{{ '⭐ ' if f.is_primary }}{{ '📄' if f.mime == 'application/pdf' else '🖼️' if f.mime.startswith('image') else '📝' }} {{ f.name }}</a></li>
-    {% endfor %}
-  </ul>
-  {% endif %}
-  <div class="actions">
-    {% for st in STATUSES %}
-    <form method="post" action="/tasks/{{ t.id }}/status" class="inline">
-      <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
-      <input type="hidden" name="next" value="{{ next }}#task-{{ t.id }}">
-      <input type="hidden" name="status" value="{{ st }}">
-      <button class="btn {{ status_class[st] }} {{ 'active' if st == t.status }}" type="submit">{{ {'Ναι': '✅ Έγινε', 'Σε εξέλιξη': '⏳ Σε εξέλιξη', 'Όχι': '○ Όχι'}[st] }}</button>
-    </form>
-    {% endfor %}
-  </div>
-  {% if not compact %}
-  <details class="more">
-    <summary>Σημειώσεις & αναβολή</summary>
-    <form method="post" action="/tasks/{{ t.id }}/notes">
-      <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
-      <input type="hidden" name="next" value="{{ next }}#task-{{ t.id }}">
-      <label>Σημειώσεις (τι σε δυσκόλεψε)
-        <textarea name="notes" rows="3">{{ t.notes }}</textarea></label>
-      <button class="btn" type="submit">Αποθήκευση σημειώσεων</button>
-    </form>
-    {% if t.status != 'Ναι' %}
-    <form method="post" action="/tasks/{{ t.id }}/postpone" class="row">
-      <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
-      <input type="hidden" name="next" value="{{ next }}">
-      <label>Μετάθεση σε <input type="date" name="new_date" value="{{ tomorrow.isoformat() }}"></label>
-      <button class="btn" type="submit">📅 Αναβολή</button>
-    </form>
-    {% endif %}
-    <a class="small" href="/tasks/{{ t.id }}/edit">✏️ Επεξεργασία εργασίας</a>
+  {% if t.description %}<p class="item-desc">{{ t.description }}</p>{% endif %}
+  {{ file_links(files) }}
+  {% if t.notes %}<p class="item-notes">{{ t.notes }}</p>{% endif %}
+  <div class="item-actions">{{ status_seg(t, next) }}</div>
+  <details class="more-line">
+    <summary>{{ icon('chevron') }}Σημειώσεις και μεταφορά</summary>
+    {{ task_extra(t, next, tomorrow) }}
   </details>
-  {% elif t.notes %}
-  <p class="notes small">🗒️ {{ t.notes }}</p>
-  {% endif %}
 </article>
+{%- endmacro %}
+
+{# Γραμμή ημέρας στο πλάνο #}
+{% macro task_row(t, files, next, tomorrow, today) -%}
+{% set cls = status_class[t.status] %}
+{% set is_today = t.date == today.isoformat() %}
+<details class="trow {{ cls }} {{ 'is-today' if is_today }}" id="task-{{ t.id }}" {{ 'open' if is_today }}>
+  <summary>
+    <div class="tdate"><b>{{ t.date | dnum }}</b><small>{{ t.date | wday }}</small></div>
+    <div class="tmain">
+      <div class="ttitle">{{ t.topic or 'Εργασία' }}{% if is_today %}<span class="today-tag">Σήμερα</span>{% endif %}</div>
+      {% set parts = [] %}
+      {% if t.day_no %}{% set _ = parts.append('Ημέρα ' ~ t.day_no) %}{% endif %}
+      {% if t.original_date %}{% set _ = parts.append('μεταφέρθηκε') %}{% endif %}
+      {% if t.description %}{% set _ = parts.append(t.description) %}{% endif %}
+      <div class="tsub">{{ parts | join(' · ') }}</div>
+    </div>
+    <span class="tick {{ cls }}" title="{{ status_label[t.status] }}">{% if cls == 'done' %}{{ icon('check') }}{% endif %}</span>
+  </summary>
+  <div class="trow-body">
+    {% if t.description %}<p class="item-desc">{{ t.description }}</p>{% endif %}
+    {{ file_links(files) }}
+    {% if t.notes %}<p class="item-notes">{{ t.notes }}</p>{% endif %}
+    <div class="item-actions">{{ status_seg(t, next) }}</div>
+    <details class="more-line">
+      <summary>{{ icon('chevron') }}Σημειώσεις και μεταφορά</summary>
+      {{ task_extra(t, next, tomorrow) }}
+    </details>
+  </div>
+</details>
 {%- endmacro %}

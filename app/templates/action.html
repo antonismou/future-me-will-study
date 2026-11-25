@@ -1,16 +1,21 @@
 {% extends "base.html" %}
-{% block title %}Ενέργεια εργασίας{% endblock %}
+{% block title %}Ενημέρωση εργασίας{% endblock %}
 {% block content %}
-<section class="card narrow">
-  <h1>{{ task.topic }}</h1>
-  <p class="muted">{{ task.date | gdate }} · κατάσταση: <strong>{{ task.status }}</strong></p>
-  {% if result %}
-    <div class="flash ok">{% if result == 'postponed' %}Η εργασία είναι πλέον στις {{ task.date | gdate }}.{% else %}Η κατάσταση άλλαξε σε «{{ result }}».{% endif %}</div>
-  {% else %}
-    <form method="post" action="/a/{{ token }}">
-      <button class="btn primary" type="submit">{{ {'done': '✅ Σήμανση ως «Ναι»', 'progress': '⏳ Σήμανση ως «Σε εξέλιξη»', 'postpone': '📅 Αναβολή για αύριο'}[action] }}</button>
-    </form>
-  {% endif %}
-  <p><a href="/">Άνοιγμα dashboard</a></p>
+<section class="narrow">
+  <div class="card stack">
+    <div>
+      <p class="item-meta">{{ task.date | longdate }}</p>
+      <h1>{{ task.topic }}</h1>
+    </div>
+    <span class="state {{ status_class[task.status] }}">{{ status_label[task.status] }}</span>
+    {% if result %}
+      <div class="flash">{% if result == 'postponed' %}Η εργασία μεταφέρθηκε στις {{ task.date | gdate }}.{% else %}Η κατάσταση ενημερώθηκε.{% endif %}</div>
+    {% else %}
+      <form method="post" action="/a/{{ token }}">
+        <button class="btn primary block" type="submit">{{ {'done': 'Σήμανση ως ολοκληρωμένη', 'progress': 'Σήμανση ως σε εξέλιξη', 'postpone': 'Μεταφορά για αύριο'}[action] }}</button>
+      </form>
+    {% endif %}
+    <a class="linkish center" href="/">Μετάβαση στην εφαρμογή</a>
+  </div>
 </section>
 {% endblock %}

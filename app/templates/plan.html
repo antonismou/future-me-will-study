@@ -1,57 +1,58 @@
 {% extends "base.html" %}
-{% from "macros.html" import task_card, bar with context %}
-{% block title %}{{ course.name }} · Πλάνο{% endblock %}
+{% from "macros.html" import task_row, bar, course_header with context %}
+{% block title %}{{ course.name }}{% endblock %}
 {% block content %}
-<div class="course-head">
-  <h1 class="course-title" data-color="{{ course.color }}">{{ course.name }}</h1>
-  <div class="stats">
-    {% if days_left is not none and days_left >= 0 %}<span class="pill">⏳ {{ days_left }} μέρες</span>{% endif %}
-    {% if streak %}<span class="pill">🔥 {{ streak }}</span>{% endif %}
-  </div>
-</div>
-<div class="row wrap-gap">
-  <a class="btn" href="/c/{{ course.slug }}/files">📂 Αρχεία</a>
-  <a class="btn" href="/c/{{ course.slug }}/tasks/new">➕ Εργασία</a>
-  <a class="btn" href="/c/{{ course.slug }}/settings">⚙️ Εισαγωγή / εξαγωγή</a>
-</div>
-<section class="card">
-  <h2>Συνολική πρόοδος · {{ total.done }}/{{ total.total }} ({{ total.pct }}%)</h2>
-  {{ bar(total.pct, course.color) }}
-  <table class="mini">
+{% set sub %}{{ total.done }} από {{ total.total }} ολοκληρωμένες{% if total.in_progress %} · {{ total.in_progress }} σε εξέλιξη{% endif %}{% if days_left is not none and days_left >= 0 %} · εξέταση {{ course.exam_date | daymonth }} (σε {{ days_left }} ημέρες){% endif %}{% endset %}
+{% call course_header(course, 'plan', sub) %}
+  <a class="btn small" href="/c/{{ course.slug }}/tasks/new">{{ icon('plus') }}Εργασία</a>
+{% endcall %}
+
+{% if weeks %}
+<section class="section">
+  <div class="section-head"><h2>Πρόοδος</h2><span class="meta">{{ total.pct }}%</span></div>
+  <div class="panel overview">
     {% for w in weeks %}
-    <tr><td><a href="#week-{{ loop.index }}">{{ w.week.title if w.week else 'Χωρίς εβδομάδα' }}</a></td>
-        <td class="w-bar">{{ bar(w.pct, course.color) }}</td><td class="num">{{ w.done }}/{{ w.total }}</td></tr>
+    <div class="ov-row"><a href="#week-{{ loop.index }}">{{ w.week.title if w.week else 'Χωρίς εβδομάδα' }}</a>{{ bar(w.pct) }}<span class="n">{{ w.done }}/{{ w.total }}</span></div>
     {% endfor %}
-  </table>
-  {% if total.in_progress %}<p class="muted small">Σε εξέλιξη: {{ total.in_progress }}</p>{% endif %}
+  </div>
 </section>
+{% else %}
+<section class="panel empty">
+  <h2>Το πλάνο είναι άδειο</h2>
+  <p>Πρόσθεσε εργασίες ή εισήγαγε xlsx από τις ρυθμίσεις του μαθήματος.</p>
+</section>
+{% endif %}
 
 {% for w in weeks %}
-<details class="week" id="week-{{ loop.index }}" {% if w.tasks and w.tasks[0].date <= today.isoformat() and w.tasks[-1].date >= today.isoformat() %}open{% endif %}>
+<details class="week" id="week-{{ loop.index }}" {% if w.tasks and w.tasks[0].date <= today.isoformat() and w.tasks[-1].date >= today.isoformat() or (loop.first and w.tasks and w.tasks[0].date > today.isoformat()) or not w.tasks %}open{% endif %}>
   <summary>
-    <span>{{ w.week.title if w.week else 'Χωρίς εβδομάδα' }}</span>
-    <span class="muted small">{{ w.done }}/{{ w.total }} · {{ w.pct }}%</span>
+    <h2>{{ icon('chevron') }}{{ w.week.title if w.week else 'Χωρίς εβδομάδα' }}</h2>
+    <span class="meta">{{ w.done }}/{{ w.total }}</span>
   </summary>
-  {% if w.week and w.week.summary %}<p class="muted small">{{ w.week.summary }}</p>{% endif %}
-  {% for t in w.tasks %}
-    {{ task_card(t, files[t.id], '/c/' ~ course.slug, tomorrow) }}
-  {% endfor %}
-  {% if w.week and not w.tasks %}
-  <form method="post" action="/weeks/{{ w.week.id }}/delete" data-confirm="Διαγραφή εβδομάδας;">
-    <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
-    <button class="btn danger small" type="submit">Διαγραφή κενής εβδομάδας</button>
-  </form>
+  {% if w.week and w.week.summary %}<p class="week-summary">{{ w.week.summary }}</p>{% endif %}
+  {% if w.tasks %}
+  <div class="panel list">
+    {% for t in w.tasks %}{{ task_row(t, files[t.id], '/c/' ~ course.slug, tomorrow, today) }}{% endfor %}
+  </div>
+  {% elif w.week %}
+  <div class="panel item row">
+    <span class="muted small">Καμία εργασία.</span>
+    <form method="post" action="/weeks/{{ w.week.id }}/delete" data-confirm="Διαγραφή της εβδομάδας;" class="inline top-actions">
+      <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+      <button class="btn small danger" type="submit">Διαγραφή</button>
+    </form>
+  </div>
   {% endif %}
 </details>
 {% endfor %}
 
 <details class="card">
-  <summary>➕ Νέα εβδομάδα / ενότητα</summary>
+  <summary>Νέα εβδομάδα ή ενότητα {{ icon('chevron') }}</summary>
   <form method="post" action="/c/{{ course.slug }}/weeks" class="stack">
     <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
-    <label>Τίτλος <input name="title" required maxlength="120"></label>
+    <label>Τίτλος <input name="title" required maxlength="120" placeholder="Εβδ.5 - Επανάληψη"></label>
     <label>Περιγραφή <input name="summary" maxlength="500"></label>
-    <button class="btn" type="submit">Προσθήκη</button>
+    <div><button class="btn primary" type="submit">Προσθήκη</button></div>
   </form>
 </details>
 {% endblock %}

@@ -1,32 +1,40 @@
 {% extends "base.html" %}
-{% from "macros.html" import task_card, bar with context %}
+{% from "macros.html" import task_item, bar with context %}
 {% block title %}Σήμερα{% endblock %}
 {% block content %}
-<h1>Σήμερα <span class="muted">· {{ today | gdate }}</span></h1>
+<div class="page-head">
+  <h1>Σήμερα</h1>
+  <p class="sub">{{ today | longdate }}{% if cards %} · {% if pending %}{{ pending }} εκκρεμ{{ 'ής εργασία' if pending == 1 else 'είς εργασίες' }}{% else %}όλα ολοκληρωμένα{% endif %}{% endif %}</p>
+</div>
+
 {% if not cards %}
-<section class="card">
-  <p>Δεν υπάρχει ακόμα ενεργό μάθημα.</p>
-  <a class="btn primary" href="/courses">➕ Πρόσθεσε μάθημα ή εισήγαγε xlsx</a>
+<section class="panel empty">
+  <h2>Δεν υπάρχει μάθημα ακόμα</h2>
+  <p>Δημιούργησε ένα μάθημα και εισήγαγε το πλάνο σου από xlsx.</p>
+  <a class="btn primary" href="/courses">Νέο μάθημα</a>
 </section>
 {% endif %}
+
 {% for c in cards %}
-<section class="course-block">
+<section class="section course-block" data-color="{{ c.course.color }}">
   <div class="course-head">
-    <a href="/c/{{ c.course.slug }}" class="course-title" data-color="{{ c.course.color }}">{{ c.course.name }}</a>
-    <div class="stats">
-      {% if c.days_left is not none and c.days_left >= 0 %}<span class="pill">⏳ {{ c.days_left }} μέρες</span>{% endif %}
-      {% if c.streak %}<span class="pill">🔥 {{ c.streak }}</span>{% endif %}
-      {% if c.overdue %}<a class="pill warn" href="/overdue">⚠️ {{ c.overdue }} πίσω</a>{% endif %}
-    </div>
+    <a class="course-name" href="/c/{{ c.course.slug }}"><span class="dot"></span>{{ c.course.name }}</a>
+    <span class="course-meta">{{ c.progress.done }}/{{ c.progress.total }}{% if c.days_left is not none and c.days_left >= 0 %} · {{ 'εξέταση σήμερα' if c.days_left == 0 else 'εξέταση σε ' ~ c.days_left ~ (' ημέρα' if c.days_left == 1 else ' ημέρες') }}{% endif %}{% if c.streak %} · {{ c.streak }} συνεχόμενες{% endif %}</span>
   </div>
-  {{ bar(c.progress.pct, c.course.color) }}
-  <p class="muted small">Συνολικά {{ c.progress.done }}/{{ c.progress.total }} ({{ c.progress.pct }}%)</p>
-  {% for t in c.tasks %}
-    {{ task_card(t, c.files[t.id], '/', tomorrow) }}
+  {{ bar(c.progress.pct) }}
+  {% if c.tasks %}
+  <div class="panel list">
+    {% for t in c.tasks %}{{ task_item(t, c.files[t.id], '/', tomorrow) }}{% endfor %}
+  </div>
   {% else %}
-    <div class="card muted">Καμία εργασία για σήμερα.
-      {% if c.upcoming %} Επόμενη: <strong>{{ c.upcoming.topic }}</strong> ({{ c.upcoming.date | gdate }}).{% endif %}</div>
-  {% endfor %}
+  <div class="panel item">
+    <p class="muted">Καμία εργασία για σήμερα.</p>
+    {% if c.upcoming %}<p class="item-meta">Επόμενη: {{ c.upcoming.topic }} — {{ c.upcoming.date | gdate }}</p>{% endif %}
+  </div>
+  {% endif %}
+  {% if c.overdue %}
+  <a class="alert-line" href="/overdue"><span>{{ c.overdue }} {{ 'εργασία έμεινε' if c.overdue == 1 else 'εργασίες έμειναν' }} πίσω</span>{{ icon('chevron') }}</a>
+  {% endif %}
 </section>
 {% endfor %}
 {% endblock %}

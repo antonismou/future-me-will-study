@@ -1,9 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Σφάλμα {{ code }}{% endblock %}
 {% block content %}
-<section class="card narrow">
-  <h1>Σφάλμα {{ code }}</h1>
-  <p>{{ detail }}</p>
-  <p><a href="/">← Αρχική</a></p>
+<section class="narrow">
+  <div class="card empty">
+    <p class="faint small tnum">Σφάλμα {{ code }}</p>
+    <h2>{{ detail }}</h2>
+    <a class="btn" href="/">Αρχική</a>
+  </div>
 </section>
 {% endblock %}

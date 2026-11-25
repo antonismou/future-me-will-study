@@ -3,32 +3,42 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#1e3a8a">
-  <title>{% block title %}Διάβασμα{% endblock %}</title>
+  <meta name="theme-color" content="#fbfbfa" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e0e10" media="(prefers-color-scheme: dark)">
+  <title>{% block title %}Διάβασμα{% endblock %} — Διάβασμα</title>
   <link rel="stylesheet" href="/static/style.css">
   <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
   <script src="/static/app.js" defer></script>
 </head>
 <body>
 <header class="top">
-  <a class="brand" href="/">📚 Διάβασμα</a>
-  {% if user %}
-  <form method="post" action="/logout" class="inline">
-    <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
-    <button class="link small" type="submit">Αποσύνδεση</button>
-  </form>
-  {% endif %}
+  <div class="top-in">
+    <a class="brand" href="/"><img src="/static/icon.svg" alt="">Διάβασμα</a>
+    {% if user %}
+    {% set nav = [('/', 'Σήμερα', 'home', path == '/'), ('/overdue', 'Εκκρεμότητες', 'clock', path == '/overdue'),
+                  ('/courses', 'Μαθήματα', 'book', path.startswith('/c') or path.startswith('/tasks')),
+                  ('/settings', 'Ρυθμίσεις', 'sliders', path == '/settings')] %}
+    <nav class="topnav" aria-label="Πλοήγηση">
+      {% for href, label, ic, on in nav %}<a href="{{ href }}" class="{{ 'on' if on }}">{{ label }}{% if href == '/overdue' and overdue_count %}<span class="badge-n">{{ overdue_count }}</span>{% endif %}</a>{% endfor %}
+    </nav>
+    <form method="post" action="/logout" class="inline top-actions">
+      <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+      <button class="icon-btn" type="submit" title="Αποσύνδεση" aria-label="Αποσύνδεση">{{ icon('logout') }}</button>
+    </form>
+    {% endif %}
+  </div>
 </header>
 <main class="wrap">
   {% if flash %}<div class="flash {{ flash.kind }}" role="status">{{ flash.msg }}</div>{% endif %}
   {% block content %}{% endblock %}
 </main>
 {% if user %}
-<nav class="tabbar" aria-label="Κύρια πλοήγηση">
-  <a href="/" class="{{ 'on' if path == '/' }}"><span>🏠</span>Σήμερα</a>
-  <a href="/overdue" class="{{ 'on' if path == '/overdue' }}"><span>⏰</span>Πίσω</a>
-  <a href="/courses" class="{{ 'on' if path.startswith('/c') }}"><span>📘</span>Μαθήματα</a>
-  <a href="/settings" class="{{ 'on' if path == '/settings' }}"><span>⚙️</span>Ρυθμίσεις</a>
+<nav class="tabbar" aria-label="Πλοήγηση">
+  <div class="tabbar-in">
+    {% for href, label, ic, on in nav %}
+    <a href="{{ href }}" class="{{ 'on' if on }}">{{ icon(ic) }}{{ 'Εκκρεμή' if href == '/overdue' else label }}{% if href == '/overdue' and overdue_count %}<span class="badge-n">{{ overdue_count }}</span>{% endif %}</a>
+    {% endfor %}
+  </div>
 </nav>
 {% endif %}
 </body>

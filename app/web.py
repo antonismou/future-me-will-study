@@ -71,7 +71,10 @@ def today_page(request: Request, conn=Depends(get_conn)):
             "streak": services.streak_from(all_tasks, today), "days_left": services.days_left(c["exam_date"], today),
             "upcoming": upcoming,
         })
-    return _render(request, "today.html", {"cards": cards, "today": today,
+    hour = services.local_now(conn).hour
+    greeting = "Καλημέρα" if 5 <= hour < 12 else "Καλό απόγευμα" if hour < 18 else "Καλησπέρα"
+    pending = sum(1 for c in cards for t in c["tasks"] if t["status"] != "Ναι")
+    return _render(request, "today.html", {"cards": cards, "today": today, "greeting": greeting, "pending": pending,
                                            "tomorrow": today + timedelta(days=1)})
 
 

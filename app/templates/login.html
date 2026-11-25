@@ -1,15 +1,17 @@
 {% extends "base.html" %}
 {% block title %}Σύνδεση{% endblock %}
 {% block content %}
-<section class="card narrow">
-  <h1>Σύνδεση</h1>
+<section class="narrow">
+  <img class="login-mark" src="/static/icon.svg" alt="">
+  <h1 class="center">Σύνδεση</h1>
+  <p class="center muted small">Διάβασμα · πλάνο μελέτης</p>
   {% if error %}<div class="flash error">{{ error }}</div>{% endif %}
-  <form method="post" action="/login" class="stack">
+  <form method="post" action="/login" class="card stack">
     <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
     <input type="hidden" name="next" value="{{ next }}">
-    <label>Χρήστης <input name="username" autocomplete="username" required autofocus></label>
+    <label>Όνομα χρήστη <input name="username" autocomplete="username" required autofocus></label>
     <label>Κωδικός <input name="password" type="password" autocomplete="current-password" required></label>
-    <button class="btn primary" type="submit">Είσοδος</button>
+    <button class="btn primary block" type="submit">Σύνδεση</button>
   </form>
 </section>
 {% endblock %}
