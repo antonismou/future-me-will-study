@@ -165,3 +165,21 @@ def postpone(conn: sqlite3.Connection, task_id: int, new_date: date) -> bool:
 
 def default_postpone_date(task_date: date, today: date) -> date:
     return max(task_date, today) + timedelta(days=1)
+
+
+# ---------------------------------------------------------------- Δυσκολίες
+
+def review_items(conn: sqlite3.Connection, course_id: int) -> list[sqlite3.Row]:
+    """Εργασίες με σημειώσεις ή σημειωμένες ως δύσκολες (η λίστα για την τελική επανάληψη)."""
+    return conn.execute(
+        """SELECT * FROM task WHERE course_id=? AND (hard=1 OR TRIM(notes) != '')
+           ORDER BY reviewed_at IS NOT NULL, date, COALESCE(day_no, 9999), id""", (course_id,)).fetchall()
+
+
+def set_hard(conn: sqlite3.Connection, task_id: int, hard: bool) -> None:
+    conn.execute("UPDATE task SET hard=? WHERE id=?", (int(hard), task_id))
+
+
+def set_reviewed(conn: sqlite3.Connection, task_id: int, reviewed: bool) -> None:
+    conn.execute("UPDATE task SET reviewed_at=? WHERE id=?",
+                 (datetime.now().isoformat(timespec="seconds") if reviewed else None, task_id))

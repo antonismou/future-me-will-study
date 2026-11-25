@@ -1,12 +1,20 @@
 # Study planner + self-hosted ntfy, πίσω από Nginx Proxy Manager (κοινό docker network, χωρίς ports στο host).
 name: study
 
+# Όριο στα logs κάθε container (αλλιώς μεγαλώνουν χωρίς τέλος και γεμίζουν τον δίσκο).
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   app:
     build: .
     image: study-app:latest
     container_name: study-app
     restart: unless-stopped
+    logging: *logging
     env_file: .env
     environment:
       DATA_DIR: /data
@@ -26,6 +34,7 @@ services:
     image: binwiederhier/ntfy:v2.11.0
     container_name: study-ntfy
     restart: unless-stopped
+    logging: *logging
     command: serve
     user: "10002:10002"
     environment:
@@ -35,7 +44,7 @@ services:
       NTFY_AUTH_FILE: /var/lib/ntfy/user.db
       NTFY_AUTH_DEFAULT_ACCESS: deny-all
       NTFY_BEHIND_PROXY: "true"
-      NTFY_ENABLE_LOGIN: "true"
+      NTFY_WEB_ROOT: disable         # χωρίς web UI: το κινητό μιλάει απευθείας με το API
       NTFY_ATTACHMENT_CACHE_DIR: ""
       TZ: Europe/Athens
     volumes:
@@ -55,6 +64,7 @@ services:
   # Δίνει σωστά δικαιώματα στο volume του ntfy (τρέχει μία φορά ως root και τερματίζει).
   ntfy-init:
     image: busybox:1.36
+    logging: *logging
     command: ["sh", "-c", "chown -R 10002:10002 /var/lib/ntfy"]
     volumes:
       - ntfy-data:/var/lib/ntfy

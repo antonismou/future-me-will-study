@@ -386,3 +386,59 @@ details.card[open] > summary { margin-bottom: 16px; }
 label.toggle > span { min-width: 0; }
 .field { min-width: 0; }
 html, body { overflow-x: hidden; }
+
+/* ---------- χρονόμετρο ---------- */
+.item-actions { flex-wrap: wrap; }
+.timer .i { width: 15px; height: 15px; }
+.timer.on { border-color: var(--danger); color: var(--danger); background: var(--danger-bg); }
+.timer.on:hover { background: var(--danger-bg); opacity: .9; }
+.live { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); flex: none;
+  animation: pulse 1.6s ease-in-out infinite; margin-left: 6px; vertical-align: 1px; }
+.timer .live, .runbar .live { margin-left: 0; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+.runbar { position: sticky; top: 52px; z-index: 25; background: var(--surface); border-bottom: 1px solid var(--line); }
+.runbar-in { max-width: 680px; margin: 0 auto; padding: 7px 16px; display: flex; align-items: center; gap: 10px; font-size: .88rem; }
+.runbar-task { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.runbar-task:hover { text-decoration: underline; text-underline-offset: 3px; }
+.runbar-time { color: var(--ink-2); }
+@media (min-width: 768px) { .runbar-in { max-width: 760px; } }
+.hard-tag { color: var(--prog); }
+.icon-btn.small-icon { width: 28px; height: 28px; }
+.icon-btn.small-icon .i { width: 15px; height: 15px; }
+
+/* ---------- στατιστικά χρόνου ---------- */
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 0 0 24px; }
+@media (max-width: 560px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; }
+.stat-label { font-size: .78rem; color: var(--ink-3); }
+.stat-value { font-size: 1.15rem; font-weight: 600; letter-spacing: -.01em; }
+.chart-panel { padding: 16px 12px 10px; }
+.chart { display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; align-items: end; height: 168px; }
+.col { display: flex; flex-direction: column; align-items: center; gap: 3px; height: 100%; min-width: 0; }
+.col-val { font-size: .66rem; color: var(--ink-3); height: 14px; }
+.col-track { flex: 1; width: 100%; max-width: 22px; display: flex; align-items: flex-end; }
+.col-bar { display: block; width: 100%; height: 0; min-height: 0; background: var(--ink-3); border-radius: 3px 3px 1px 1px;
+  transition: height .6s var(--ease); }
+.col.is-today .col-bar { background: var(--ink); }
+.col-day { font-size: .72rem; color: var(--ink-2); }
+.col-wd { font-size: .62rem; color: var(--ink-3); }
+.col.is-today .col-day { color: var(--ink); font-weight: 600; }
+.chart-hint { margin-top: 8px; text-align: right; }
+.rowlink { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 16px; transition: background .15s; }
+.rowlink:hover { background: var(--hover); }
+.rl-main { display: flex; flex-direction: column; min-width: 0; }
+.rl-title { font-size: .92rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rl-sub { font-size: .78rem; color: var(--ink-3); }
+.rl-val { font-size: .88rem; color: var(--ink-2); white-space: nowrap; }
+
+/* ---------- δυσκολίες ---------- */
+.review-notes { margin-top: 10px; font-size: .95rem; line-height: 1.6; white-space: pre-line; }
+.review-item.reviewed .item-title, .review-item.reviewed .review-notes { color: var(--ink-3); }
+
+@media print {
+  .top, .tabbar, .runbar, .subnav, .crumb, .no-print, .flash, .btn { display: none !important; }
+  body { background: #fff; color: #000; padding: 0; font-size: 12pt; }
+  .panel, .card { border: 0; }
+  .item { padding: 10px 0; break-inside: avoid; }
+  .list > * + * { border-top: 1px solid #ccc; }
+}

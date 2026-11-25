@@ -27,6 +27,7 @@ class Config:
     ntfy_token_default: str
     default_tz: str
     scheduler_enabled: bool
+    trusted_proxy_hops: int
 
     @property
     def db_path(self) -> Path:
@@ -62,6 +63,7 @@ def load_config() -> Config:
         ntfy_token_default=os.environ.get("NTFY_TOKEN", ""),
         default_tz=os.environ.get("DEFAULT_TZ", "Europe/Athens"),
         scheduler_enabled=_bool("SCHEDULER_ENABLED", True),
+        trusted_proxy_hops=max(0, int(os.environ.get("TRUSTED_PROXY_HOPS", "1"))),
     )
 
 

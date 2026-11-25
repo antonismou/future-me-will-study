@@ -13,7 +13,7 @@ from markupsafe import Markup
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
-from . import auth, notify, services, storage, tokens
+from . import auth, notify, services, storage, studytime, tokens
 from .config import get_config
 from .db import connect, get_conn, init_db
 
@@ -84,6 +84,7 @@ templates.env.filters["dnum"] = lambda v: _d(v).day
 templates.env.filters["wday"] = lambda v: GR_DAYS[_d(v).weekday()]
 templates.env.filters["mon"] = lambda v: GR_MONTHS[_d(v).month - 1]
 templates.env.globals["icon"] = icon
+templates.env.filters["dur"] = studytime.fmt_duration
 templates.env.filters["longdate"] = lambda v: f"{GR_DAYS_LONG[_d(v).weekday()]} {_d(v).day} {GR_MONTHS_GEN[_d(v).month - 1]}"
 templates.env.filters["daymonth"] = lambda v: f"{_d(v).day} {GR_MONTHS_GEN[_d(v).month - 1]}"
 templates.env.globals["status_label"] = {"Ναι": "Ολοκληρώθηκε", "Σε εξέλιξη": "Σε εξέλιξη", "Όχι": "Εκκρεμεί"}
@@ -97,10 +98,12 @@ def render(request: Request, name: str, ctx: dict | None = None, status_code: in
     ctx.setdefault("flash", request.session.pop("flash", None))
     ctx.setdefault("user", request.session.get("user"))
     ctx.setdefault("path", request.url.path)
+    ctx.setdefault("task_secs", {})
     if ctx.get("user") and "overdue_count" not in ctx:
         conn = connect()
         try:
             ctx["overdue_count"] = len(services.overdue(conn, services.local_today(conn)))
+            ctx["running"] = studytime.running(conn)
         finally:
             conn.close()
     return templates.TemplateResponse(request, name, ctx, status_code=status_code)

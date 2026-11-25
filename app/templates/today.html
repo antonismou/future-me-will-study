@@ -19,7 +19,7 @@
 <section class="section course-block" data-color="{{ c.course.color }}">
   <div class="course-head">
     <a class="course-name" href="/c/{{ c.course.slug }}"><span class="dot"></span>{{ c.course.name }}</a>
-    <span class="course-meta">{{ c.progress.done }}/{{ c.progress.total }}{% if c.days_left is not none and c.days_left >= 0 %} · {{ 'εξέταση σήμερα' if c.days_left == 0 else 'εξέταση σε ' ~ c.days_left ~ (' ημέρα' if c.days_left == 1 else ' ημέρες') }}{% endif %}{% if c.streak %} · {{ c.streak }} συνεχόμενες{% endif %}</span>
+    <span class="course-meta">{{ c.progress.done }}/{{ c.progress.total }}{% if c.days_left is not none and c.days_left >= 0 %} · {{ 'εξέταση σήμερα' if c.days_left == 0 else 'εξέταση σε ' ~ c.days_left ~ (' ημέρα' if c.days_left == 1 else ' ημέρες') }}{% endif %}{% if c.streak %} · {{ c.streak }} συνεχόμενες{% endif %}{% if c.studied_today >= 60 %} · {{ c.studied_today | dur }} σήμερα{% endif %}</span>
   </div>
   {{ bar(c.progress.pct) }}
   {% if c.tasks %}

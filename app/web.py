@@ -4,13 +4,14 @@ from __future__ import annotations
 import re
 import sqlite3
 from datetime import date, timedelta
+from zoneinfo import ZoneInfo
 from zoneinfo import available_timezones
 
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from fastapi.responses import RedirectResponse, Response
 from starlette.exceptions import HTTPException
 
-from . import auth, exporter, importer, linker, notify, services, storage
+from . import auth, exporter, importer, linker, notify, services, storage, studytime
 from .config import get_config
 from .db import get_conn
 from .settings_store import WEEKDAYS, effective_token, get_settings, parse_form, save_settings
@@ -48,6 +49,14 @@ def _task(conn, task_id: int) -> sqlite3.Row:
     return t
 
 
+def _tz(conn) -> ZoneInfo:
+    return ZoneInfo(get_settings(conn)["timezone"])
+
+
+def _secs(conn, rows) -> dict[int, int]:
+    return studytime.task_seconds(conn, [r["id"] for r in rows])
+
+
 def _parse_date(v: str, field: str = "ημερομηνία") -> date:
     try:
         return date.fromisoformat(v.strip())
@@ -67,6 +76,7 @@ def today_page(request: Request, conn=Depends(get_conn)):
         upcoming = next((t for t in all_tasks if t["date"] > today.isoformat()), None)
         cards.append({
             "course": c, "tasks": todays, "files": services.task_files(conn, [t["id"] for t in todays]),
+            "studied_today": studytime.course_stats(conn, c["id"], _tz(conn), days=1).today,
             "progress": services.progress(all_tasks), "overdue": len(services.overdue(conn, today, c["id"])),
             "streak": services.streak_from(all_tasks, today), "days_left": services.days_left(c["exam_date"], today),
             "upcoming": upcoming,
@@ -74,8 +84,9 @@ def today_page(request: Request, conn=Depends(get_conn)):
     hour = services.local_now(conn).hour
     greeting = "Καλημέρα" if 5 <= hour < 12 else "Καλό απόγευμα" if hour < 18 else "Καλησπέρα"
     pending = sum(1 for c in cards for t in c["tasks"] if t["status"] != "Ναι")
+    all_today = [t for c in cards for t in c["tasks"]]
     return _render(request, "today.html", {"cards": cards, "today": today, "greeting": greeting, "pending": pending,
-                                           "tomorrow": today + timedelta(days=1)})
+                                           "tomorrow": today + timedelta(days=1), "task_secs": _secs(conn, all_today)})
 
 
 @router.get("/overdue")
@@ -83,7 +94,8 @@ def overdue_page(request: Request, conn=Depends(get_conn)):
     today = services.local_today(conn)
     items = services.overdue(conn, today)
     return _render(request, "overdue.html", {"items": items, "files": services.task_files(conn, [t["id"] for t in items]),
-                                             "today": today, "tomorrow": today + timedelta(days=1)})
+                                             "today": today, "tomorrow": today + timedelta(days=1),
+                                             "task_secs": _secs(conn, items)})
 
 
 # ---------------------------------------------------------------- ενέργειες εργασιών
@@ -99,13 +111,88 @@ def task_status(request: Request, task_id: int, status: str = Form(...), csrf: s
 
 
 @router.post("/tasks/{task_id}/notes")
-def task_notes(request: Request, task_id: int, notes: str = Form(""), csrf: str = Form(""), next: str = Form("/"),
-               conn=Depends(get_conn)):
+def task_notes(request: Request, task_id: int, notes: str = Form(""), hard: str = Form(""), csrf: str = Form(""),
+               next: str = Form("/"), conn=Depends(get_conn)):
     auth.check_csrf(request, csrf)
     _task(conn, task_id)
     services.set_notes(conn, task_id, notes)
-    _flash(request, "Οι σημειώσεις αποθηκεύτηκαν.")
+    services.set_hard(conn, task_id, hard == "on")
+    _flash(request, "Οι σημειώσεις αποθηκεύτηκαν." + (" Η εργασία μπήκε στις Δυσκολίες." if hard == "on" else ""))
     return _back(request, next)
+
+
+@router.post("/tasks/{task_id}/reviewed")
+def task_reviewed(request: Request, task_id: int, reviewed: str = Form("1"), csrf: str = Form(""),
+                  next: str = Form("/"), conn=Depends(get_conn)):
+    auth.check_csrf(request, csrf)
+    _task(conn, task_id)
+    services.set_reviewed(conn, task_id, reviewed == "1")
+    return _back(request, next)
+
+
+# ---------------------------------------------------------------- χρόνος μελέτης
+
+@router.post("/tasks/{task_id}/timer/start")
+def timer_start(request: Request, task_id: int, csrf: str = Form(""), next: str = Form("/"), conn=Depends(get_conn)):
+    auth.check_csrf(request, csrf)
+    _task(conn, task_id)
+    studytime.start(conn, task_id)
+    return _back(request, next)
+
+
+@router.post("/timer/stop")
+def timer_stop(request: Request, csrf: str = Form(""), next: str = Form("/"), conn=Depends(get_conn)):
+    auth.check_csrf(request, csrf)
+    secs = studytime.stop(conn)
+    if secs >= 60:
+        _flash(request, f"Καταγράφηκαν {studytime.fmt_duration(secs)} μελέτης.")
+    else:
+        _flash(request, "Το χρονόμετρο σταμάτησε (λιγότερο από 1 λεπτό).")
+    return _back(request, next)
+
+
+@router.post("/tasks/{task_id}/time")
+def time_manual(request: Request, task_id: int, minutes: str = Form(""), csrf: str = Form(""), next: str = Form("/"),
+                conn=Depends(get_conn)):
+    auth.check_csrf(request, csrf)
+    _task(conn, task_id)
+    try:
+        studytime.add_manual(conn, task_id, int(minutes))
+        _flash(request, f"Προστέθηκαν {studytime.fmt_duration(int(minutes) * 60)} μελέτης.")
+    except ValueError:
+        _flash(request, "Δώσε λεπτά από 1 έως 720.", "error")
+    return _back(request, next)
+
+
+@router.post("/sessions/{session_id}/delete")
+def session_delete(request: Request, session_id: int, csrf: str = Form(""), next: str = Form("/"),
+                   conn=Depends(get_conn)):
+    auth.check_csrf(request, csrf)
+    conn.execute("DELETE FROM study_session WHERE id=?", (session_id,))
+    _flash(request, "Η καταγραφή διαγράφηκε.")
+    return _back(request, next)
+
+
+@router.get("/c/{slug}/time")
+def time_page(request: Request, slug: str, conn=Depends(get_conn)):
+    c = _course(conn, slug)
+    st = studytime.course_stats(conn, c["id"], _tz(conn), days=14)
+    peak = max([s for _, s in st.days] + [60])
+    week_peak = max([s for _, s in st.by_week] + [60])
+    return _render(request, "time.html", {"course": c, "st": st, "peak": peak, "week_peak": week_peak,
+                                          "today": services.local_today(conn)})
+
+
+@router.get("/c/{slug}/review")
+def review_page(request: Request, slug: str, conn=Depends(get_conn)):
+    c = _course(conn, slug)
+    items = services.review_items(conn, c["id"])
+    today = services.local_today(conn)
+    return _render(request, "review.html", {
+        "course": c, "pending": [t for t in items if not t["reviewed_at"]],
+        "done": [t for t in items if t["reviewed_at"]], "files": services.task_files(conn, [t["id"] for t in items]),
+        "today": today, "tomorrow": today + timedelta(days=1), "task_secs": _secs(conn, items),
+        "days_left": services.days_left(c["exam_date"], today)})
 
 
 @router.post("/tasks/{task_id}/postpone")
@@ -274,6 +361,7 @@ def plan_page(request: Request, slug: str, conn=Depends(get_conn)):
     return _render(request, "plan.html", {
         "course": c, "weeks": wp, "total": services.progress(all_tasks), "today": today,
         "files": services.task_files(conn, [t["id"] for t in all_tasks]), "tomorrow": today + timedelta(days=1),
+        "task_secs": _secs(conn, all_tasks), "studied": studytime.course_stats(conn, c["id"], _tz(conn), days=1).total,
         "streak": services.streak_from(all_tasks, today), "days_left": services.days_left(c["exam_date"], today)})
 
 
@@ -368,7 +456,8 @@ def export_csv(slug: str, conn=Depends(get_conn)):
     c = _course(conn, slug)
     titles = {w["id"]: w["title"] for w in services.weeks(conn, c["id"])}
     stamp = services.local_today(conn).strftime("%Y%m%d")
-    return _download(exporter.export_csv(services.tasks(conn, c["id"]), titles), f"{c['slug']}_{stamp}.csv",
+    rows = services.tasks(conn, c["id"])
+    return _download(exporter.export_csv(rows, titles, _secs(conn, rows)), f"{c['slug']}_{stamp}.csv",
                      "text/csv; charset=utf-8")
 
 

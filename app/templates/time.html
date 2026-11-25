@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% from "macros.html" import course_header with context %}
+{% block title %}Χρόνος μελέτης — {{ course.name }}{% endblock %}
+{% block content %}
+{{ course_header(course, 'time', 'Χρόνος μελέτης από το χρονόμετρο και τις χειροκίνητες καταγραφές.') }}
+
+<div class="stat-grid">
+  <div class="stat"><span class="stat-label">Σήμερα</span><span class="stat-value tnum">{{ st.today | dur }}</span></div>
+  <div class="stat"><span class="stat-label">7 ημέρες</span><span class="stat-value tnum">{{ st.week | dur }}</span></div>
+  <div class="stat"><span class="stat-label">Μ.Ο. ημέρας (14 ημ.)</span><span class="stat-value tnum">{{ st.avg_day | dur }}</span></div>
+  <div class="stat"><span class="stat-label">Σύνολο</span><span class="stat-value tnum">{{ st.total | dur }}</span></div>
+</div>
+
+<section class="section">
+  <div class="section-head"><h2>Τελευταίες 14 ημέρες</h2><span class="meta">μέγιστο {{ peak | dur }}</span></div>
+  <div class="panel chart-panel">
+    <div class="chart" role="img" aria-label="Χρόνος μελέτης ανά ημέρα">
+      {% for d, s in st.days %}
+      <div class="col {{ 'is-today' if d == today }}" title="{{ d | gdate }}: {{ s | dur }}">
+        <span class="col-val tnum">{{ (s // 60) if s >= 60 else '' }}</span>
+        <div class="col-track"><span class="col-bar" data-h="{{ (100 * s / peak) | round(1) if s >= 60 else 0 }}"></span></div>
+        <span class="col-day tnum">{{ d | dnum }}</span>
+        <span class="col-wd">{{ (d | wday)[:2] }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="hint chart-hint">Τιμές σε λεπτά.</p>
+  </div>
+</section>
+
+{% if st.by_week %}
+<section class="section">
+  <div class="section-head"><h2>Ανά εβδομάδα του πλάνου</h2></div>
+  <div class="panel overview">
+    {% for title, s in st.by_week %}
+    <div class="ov-row"><span>{{ title }}</span><div class="bar"><span data-pct="{{ (100 * s / week_peak) | round(1) if s else 0 }}"></span></div><span class="n">{{ s | dur }}</span></div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if st.by_task %}
+<section class="section">
+  <div class="section-head"><h2>Εργασίες με τον περισσότερο χρόνο</h2></div>
+  <div class="panel list">
+    {% for t, s in st.by_task %}
+    <a class="rowlink" href="/c/{{ course.slug }}#task-{{ t.id }}">
+      <span class="rl-main"><span class="rl-title">{{ t.topic }}</span><span class="rl-sub">{% if t.day_no %}Ημέρα {{ t.day_no }} · {% endif %}{{ t.date | gdate }}</span></span>
+      <span class="rl-val tnum">{{ s | dur }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="section">
+  <div class="section-head"><h2>Πρόσφατες καταγραφές</h2></div>
+  {% if st.recent %}
+  <div class="panel">
+    <ul class="log">
+    {% for r in st.recent %}
+      <li>
+        <div class="lx">
+          <div class="lt">{{ r.task_topic or 'Χωρίς εργασία' }}</div>
+          <div class="lm">{{ r.started_at | gdate }} · {{ 'χρονόμετρο' if r.kind == 'timer' else 'χειροκίνητα' }}{% if not r.ended_at %} · <strong>σε εξέλιξη</strong>{% endif %}</div>
+        </div>
+        <div class="row">
+          <span class="ls tnum">{% if r.ended_at %}{{ r.seconds | dur }}{% else %}<span data-since="{{ r.started_at }}">0:00</span>{% endif %}</span>
+          {% if r.ended_at %}
+          <form method="post" action="/sessions/{{ r.id }}/delete" class="inline" data-confirm="Διαγραφή της καταγραφής;">
+            <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+            <input type="hidden" name="next" value="/c/{{ course.slug }}/time">
+            <button class="icon-btn small-icon" type="submit" title="Διαγραφή" aria-label="Διαγραφή">{{ icon('trash') }}</button>
+          </form>
+          {% endif %}
+        </div>
+      </li>
+    {% endfor %}
+    </ul>
+  </div>
+  {% else %}
+  <div class="panel empty">
+    <h2>Δεν υπάρχει καταγραφή ακόμα</h2>
+    <p>Πάτα «Χρονόμετρο» σε μια εργασία όταν ξεκινάς να διαβάζεις, ή πρόσθεσε λεπτά χειροκίνητα από «Σημειώσεις, χρόνος και μεταφορά».</p>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

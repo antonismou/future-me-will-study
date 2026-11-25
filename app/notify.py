@@ -111,6 +111,13 @@ def weekly_message(conn: sqlite3.Connection, course: sqlite3.Row, s: dict[str, A
     wk = services.progress(week)
     lines = [f"📊 Τελευταίες 7 μέρες: {wk['done']}/{wk['total']} ολοκληρωμένες",
              f"📈 Συνολικά: {tot['done']}/{tot['total']} ({tot['pct']}%)"]
+    from zoneinfo import ZoneInfo
+
+    from . import studytime
+
+    st = studytime.course_stats(conn, course["id"], ZoneInfo(s["timezone"]), days=7)
+    if st.week:
+        lines.append(f"⏱️ Χρόνος μελέτης 7 ημερών: {studytime.fmt_duration(st.week)}")
     lines += _extras(conn, course, s, d + timedelta(days=1), overdue=True, countdown=True, streak=True)
     if nxt:
         lines.append(f"🗓️ Επόμενες 7 μέρες: {len(nxt)} εργασίες")

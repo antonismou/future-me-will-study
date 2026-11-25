@@ -85,7 +85,31 @@ CREATE TABLE IF NOT EXISTS meta(
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS study_session(
+    id INTEGER PRIMARY KEY,
+    course_id INTEGER NOT NULL REFERENCES course(id) ON DELETE CASCADE,
+    task_id INTEGER REFERENCES task(id) ON DELETE SET NULL,
+    started_at TEXT NOT NULL,      -- UTC ISO-8601
+    ended_at TEXT,                 -- NULL όσο τρέχει το χρονόμετρο
+    seconds INTEGER NOT NULL DEFAULT 0,
+    kind TEXT NOT NULL DEFAULT 'timer'   -- timer | manual
+);
+CREATE INDEX IF NOT EXISTS session_course ON study_session(course_id, started_at);
+CREATE INDEX IF NOT EXISTS session_task ON study_session(task_id);
 """
+
+# Στήλες που προστέθηκαν μετά την πρώτη έκδοση: (πίνακας, στήλη, ορισμός)
+MIGRATIONS = [
+    ("task", "hard", "INTEGER NOT NULL DEFAULT 0"),
+    ("task", "reviewed_at", "TEXT"),
+]
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    for table, column, ddl in MIGRATIONS:
+        cols = {r[1] for r in conn.execute(f"PRAGMA table_info({table})")}
+        if column not in cols:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}")
 
 
 def connect() -> sqlite3.Connection:
@@ -106,6 +130,7 @@ def init_db() -> None:
     try:
         conn.execute("PRAGMA journal_mode=WAL")
         conn.executescript(SCHEMA)
+        _migrate(conn)
         conn.commit()
     finally:
         conn.close()

@@ -27,6 +27,27 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.defaultPrevented) return;
     setTimeout(() => f.querySelectorAll("button[type=submit]").forEach((b) => { b.disabled = true; }), 0);
   }));
+  // Ζωντανός μετρητής χρονομέτρου
+  const timers = document.querySelectorAll("[data-since]");
+  if (timers.length) {
+    const fmt = (sec) => {
+      const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+      return (h ? h + ":" + String(m).padStart(2, "0") : String(m)) + ":" + String(s).padStart(2, "0");
+    };
+    const tick = () => timers.forEach((el) => {
+      const t0 = Date.parse(el.dataset.since);
+      if (!Number.isNaN(t0)) el.textContent = fmt(Math.max(0, Math.floor((Date.now() - t0) / 1000)));
+    });
+    tick();
+    setInterval(tick, 1000);
+  }
+  // Ύψος στηλών γραφήματος
+  document.querySelectorAll(".col-bar[data-h]").forEach((el) => {
+    const h = Math.max(0, Math.min(100, Number(el.dataset.h) || 0));
+    requestAnimationFrame(() => { el.style.height = h + "%"; if (h > 0) el.style.minHeight = "2px"; });
+  });
+  // Εκτύπωση
+  document.querySelectorAll("[data-print]").forEach((b) => b.addEventListener("click", () => window.print()));
   // Άνοιγμα της σημερινής ημέρας στο πλάνο
   const today = document.querySelector(".trow.is-today");
   if (today && !location.hash) today.scrollIntoView({ block: "center" });

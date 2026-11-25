@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% from "macros.html" import course_header, file_links with context %}
+{% block title %}Δυσκολίες — {{ course.name }}{% endblock %}
+{% block content %}
+{% set sub %}{{ pending | length }} προς επανάληψη{% if done %} · {{ done | length }} επανεξετάστηκαν{% endif %}{% if days_left is not none and days_left >= 0 %} · εξέταση σε {{ days_left }} ημέρες{% endif %}{% endset %}
+{% call course_header(course, 'review', sub) %}
+  {% if pending or done %}<button class="btn small" type="button" data-print>{{ icon('file') }}Εκτύπωση</button>{% endif %}
+{% endcall %}
+
+{% if not pending and not done %}
+<section class="panel empty">
+  <h2>Δεν υπάρχουν δυσκολίες ακόμα</h2>
+  <p>Όταν κάτι σε δυσκολεύει, γράψε το στις σημειώσεις της εργασίας ή σημείωσέ τη «Δύσκολο».<br>Θα συγκεντρωθούν εδώ για την τελική επανάληψη.</p>
+  <a class="btn" href="/c/{{ course.slug }}">Στο πλάνο</a>
+</section>
+{% endif %}
+
+{% macro review_item(t, reviewed) -%}
+<article class="item review-item {{ 'reviewed' if reviewed }}" id="task-{{ t.id }}">
+  <div class="item-head">
+    <div>
+      <h3 class="item-title">{{ t.topic or 'Εργασία' }}</h3>
+      <p class="item-meta">{% if t.day_no %}Ημέρα {{ t.day_no }} · {% endif %}{{ t.date | gdate }}{% if t.hard %} · <span class="hard-tag">δύσκολο</span>{% endif %}{% if task_secs.get(t.id, 0) >= 60 %} · {{ task_secs[t.id] | dur }} μελέτης{% endif %}</p>
+    </div>
+    <form method="post" action="/tasks/{{ t.id }}/reviewed" class="inline no-print">
+      <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+      <input type="hidden" name="next" value="/c/{{ course.slug }}/review">
+      <input type="hidden" name="reviewed" value="{{ '0' if reviewed else '1' }}">
+      <button class="btn small {{ '' if reviewed else 'primary' }}" type="submit">{{ 'Επαναφορά' if reviewed else 'Το ξαναείδα' }}</button>
+    </form>
+  </div>
+  {% if t.notes %}<p class="review-notes">{{ t.notes }}</p>{% elif t.description %}<p class="item-desc">{{ t.description }}</p>{% endif %}
+  <div class="no-print">{{ file_links(files[t.id]) }}</div>
+  <p class="item-meta no-print"><a class="linkish" href="/c/{{ course.slug }}#task-{{ t.id }}">Άνοιγμα στο πλάνο</a></p>
+</article>
+{%- endmacro %}
+
+{% if pending %}
+<section class="section">
+  <div class="section-head"><h2>Προς επανάληψη</h2><span class="meta">{{ pending | length }}</span></div>
+  <div class="panel list">{% for t in pending %}{{ review_item(t, False) }}{% endfor %}</div>
+</section>
+{% endif %}
+
+{% if done %}
+<section class="section no-print">
+  <div class="section-head"><h2>Επανεξετάστηκαν</h2><span class="meta">{{ done | length }}</span></div>
+  <div class="panel list">{% for t in done %}{{ review_item(t, True) }}{% endfor %}</div>
+</section>
+{% endif %}
+{% endblock %}

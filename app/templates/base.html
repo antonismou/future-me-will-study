@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#fbfbfa" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0e0e10" media="(prefers-color-scheme: dark)">
-  <title>{% block title %}Διάβασμα{% endblock %} — Διάβασμα</title>
+  <title>{% block title %}Διάβασμα{% endblock %} — future-me-will-study</title>
   <link rel="stylesheet" href="/static/style.css">
   <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
   <script src="/static/app.js" defer></script>
@@ -13,7 +13,7 @@
 <body>
 <header class="top">
   <div class="top-in">
-    <a class="brand" href="/"><img src="/static/icon.svg" alt="">Διάβασμα</a>
+    <a class="brand" href="/"><img src="/static/icon.svg" alt="">future-me-will-study</a>
     {% if user %}
     {% set nav = [('/', 'Σήμερα', 'home', path == '/'), ('/overdue', 'Εκκρεμότητες', 'clock', path == '/overdue'),
                   ('/courses', 'Μαθήματα', 'book', path.startswith('/c') or path.startswith('/tasks')),
@@ -28,6 +28,20 @@
     {% endif %}
   </div>
 </header>
+{% if user and running %}
+<div class="runbar" role="status">
+  <div class="runbar-in">
+    <span class="live"></span>
+    <a class="runbar-task" href="/c/{{ running.course_slug }}{% if running.task_id %}#task-{{ running.task_id }}{% endif %}">{{ running.task_topic or running.course_name }}</a>
+    <span class="tnum runbar-time" data-since="{{ running.started_at }}">0:00</span>
+    <form method="post" action="/timer/stop" class="inline">
+      <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+      <input type="hidden" name="next" value="{{ path }}">
+      <button class="btn small" type="submit">Διακοπή</button>
+    </form>
+  </div>
+</div>
+{% endif %}
 <main class="wrap">
   {% if flash %}<div class="flash {{ flash.kind }}" role="status">{{ flash.msg }}</div>{% endif %}
   {% block content %}{% endblock %}

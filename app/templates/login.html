@@ -4,7 +4,7 @@
 <section class="narrow">
   <img class="login-mark" src="/static/icon.svg" alt="">
   <h1 class="center">Σύνδεση</h1>
-  <p class="center muted small">Διάβασμα · πλάνο μελέτης</p>
+  <p class="center muted small">future-me-will-study · ο μελλοντικός εαυτός θα το διαβάσει</p>
   {% if error %}<div class="flash error">{{ error }}</div>{% endif %}
   <form method="post" action="/login" class="card stack">
     <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">

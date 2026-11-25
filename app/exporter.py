@@ -171,12 +171,14 @@ def export_new(course: sqlite3.Row, weeks: list[sqlite3.Row], tasks: list[sqlite
 
 # ---------------------------------------------------------------- CSV
 
-def export_csv(tasks: list[sqlite3.Row], week_titles: dict[int, str]) -> bytes:
+def export_csv(tasks: list[sqlite3.Row], week_titles: dict[int, str], seconds: dict[int, int] | None = None) -> bytes:
+    seconds = seconds or {}
     buf = io.StringIO()
     w = csv.writer(buf)
     w.writerow(["Εβδομάδα", "Ημέρα", "Ημερομηνία", "Αρχική ημερομηνία", "Θέμα", "Εργασία", "Πηγή",
-                "Ολοκληρώθηκε", "Σημειώσεις", "Ολοκληρώθηκε στις"])
+                "Ολοκληρώθηκε", "Σημειώσεις", "Δύσκολο", "Ολοκληρώθηκε στις", "Λεπτά μελέτης"])
     for t in tasks:
         w.writerow([week_titles.get(t["week_id"], ""), t["day_no"] or "", t["date"], t["original_date"] or "",
-                    t["topic"], t["description"], t["source"], t["status"], t["notes"], t["completed_at"] or ""])
+                    t["topic"], t["description"], t["source"], t["status"], t["notes"],
+                    "Ναι" if t["hard"] else "", t["completed_at"] or "", seconds.get(t["id"], 0) // 60])
     return buf.getvalue().encode("utf-8-sig")
