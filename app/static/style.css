@@ -431,6 +431,26 @@ html, body { overflow-x: hidden; }
 .rl-sub { font-size: .78rem; color: var(--ink-3); }
 .rl-val { font-size: .88rem; color: var(--ink-2); white-space: nowrap; }
 
+/* ---------- εβδομαδιαίος στόχος ---------- */
+.goal { margin-bottom: 12px; }
+.goal-text { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; margin-bottom: 6px; font-size: .84rem; color: var(--ink-2); }
+.goal-text strong { font-weight: 600; color: var(--ink); }
+.goal-rest { color: var(--ink-3); }
+.course-block .goal .bar { margin-bottom: 0; }
+.goal-panel { padding: 14px 16px 2px; margin-bottom: 14px; }
+.goal-empty { margin-bottom: 14px; }
+.card .row form { margin: 0; }
+
+/* ---------- δημιουργός πλάνου & ισορροπία ---------- */
+.plan-note { margin-top: 8px; }
+.log .lt.wraps { white-space: normal; }
+.hours { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.hours label { align-items: center; }
+.hours input { text-align: center; padding-left: 2px; padding-right: 2px; }
+@media (max-width: 440px) { .hours { grid-template-columns: repeat(4, 1fr); } }
+.warn-line { margin-top: 10px; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--danger-bg); color: var(--danger); font-size: .88rem; }
+a.btn .i { flex: none; }
+
 /* ---------- δυσκολίες ---------- */
 .review-notes { margin-top: 10px; font-size: .95rem; line-height: 1.6; white-space: pre-line; }
 .review-item.reviewed .item-title, .review-item.reviewed .review-notes { color: var(--ink-3); }

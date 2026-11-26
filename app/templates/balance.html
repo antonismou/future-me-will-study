@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% from "macros.html" import balance_today with context %}
+{% block title %}Ισορροπία μαθημάτων{% endblock %}
+{% block content %}
+<div class="page-head">
+  <a class="crumb" href="/courses">{{ icon('chevron') }}Μαθήματα</a>
+  <h1>Ισορροπία μαθημάτων</h1>
+  <p class="sub">Πόσο χρόνο να δώσεις σήμερα σε κάθε μάθημα, ώστε να προλάβεις όλες τις εξετάσεις. Οι ημερομηνίες του πλάνου δεν αλλάζουν.</p>
+</div>
+
+{% if advice %}
+<section class="section">
+  <div class="section-head"><h2>Σήμερα</h2></div>
+  {% if advice.courses %}
+  {{ balance_today(advice) }}
+  {% else %}
+  <div class="panel item"><p class="muted">Δεν υπάρχει δουλειά που να απομένει σε ενεργό μάθημα.</p></div>
+  {% endif %}
+</section>
+
+{% if advice.courses %}
+<section class="section">
+  <div class="section-head"><h2>Τι απομένει</h2></div>
+  <div class="panel list">
+    {% for p in advice.courses %}
+    <a class="rowlink" href="/c/{{ p.course.slug }}/settings">
+      <span class="rl-main"><span class="rl-title">{{ p.course.name }}</span>
+        <span class="rl-sub">{{ 'Εξέταση' if p.course.exam_date else 'Τέλος πλάνου πριν' }} {{ p.deadline | gdate }} · μεσαία εργασία {{ (p.course.medium_minutes * 60) | dur }}</span></span>
+      <span class="rl-val tnum">{{ p.remaining | dur }}</span>
+    </a>
+    {% endfor %}
+  </div>
+  <p class="hint plan-note">Εκτίμηση: μικρή εργασία = μισή μεσαία, μεγάλη = μιάμιση. Αφαιρείται ο χρόνος που έχεις ήδη καταγράψει. Άλλαξε τη διάρκεια της μεσαίας εργασίας από τις ρυθμίσεις κάθε μαθήματος.</p>
+</section>
+{% endif %}
+{% endif %}
+
+<section class="section">
+  <div class="section-head"><h2>Διαθέσιμες ώρες</h2></div>
+  <form method="post" action="/balance" class="card stack">
+    <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+    <p class="muted small">Πόσες ώρες μπορείς να διαβάσεις κάθε ημέρα, για όλα τα μαθήματα μαζί. Π.χ. 3 ή 1,5. Βάλε 0 στις ημέρες που δεν διαβάζεις.</p>
+    <div class="hours">
+      {% for d in weekdays %}
+      <label>{{ d[:3] }}<input name="hours_{{ loop.index0 }}" inputmode="decimal" maxlength="5" aria-label="Ώρες {{ d }}" value="{{ '%g' | format(minutes[loop.index0] / 60) }}"></label>
+      {% endfor %}
+    </div>
+    <div><button class="btn primary" type="submit">Αποθήκευση</button></div>
+  </form>
+</section>
+{% endblock %}

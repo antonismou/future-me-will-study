@@ -1,8 +1,14 @@
 {% extends "base.html" %}
-{% from "macros.html" import course_header with context %}
+{% from "macros.html" import course_header, weekly_goal with context %}
 {% block title %}Χρόνος μελέτης — {{ course.name }}{% endblock %}
 {% block content %}
 {{ course_header(course, 'time', 'Χρόνος μελέτης από το χρονόμετρο και τις χειροκίνητες καταγραφές.') }}
+
+{% if goal %}
+<section class="panel goal-panel">{{ weekly_goal(goal) }}</section>
+{% else %}
+<p class="hint goal-empty">Θέλεις εβδομαδιαίο στόχο μελέτης; <a class="linkish" href="/c/{{ course.slug }}/settings">Όρισέ τον στις ρυθμίσεις του μαθήματος</a>.</p>
+{% endif %}
 
 <div class="stat-grid">
   <div class="stat"><span class="stat-label">Σήμερα</span><span class="stat-value tnum">{{ st.today | dur }}</span></div>

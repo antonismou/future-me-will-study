@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from fastapi.responses import RedirectResponse, Response
 from starlette.exceptions import HTTPException
 
-from . import auth, exporter, importer, linker, notify, services, storage, studytime
+from . import auth, balance, builder, calfeed, exporter, importer, linker, notify, services, storage, studytime
 from .config import get_config
 from .db import get_conn
 from .settings_store import WEEKDAYS, effective_token, get_settings, parse_form, save_settings
@@ -64,6 +64,12 @@ def _parse_date(v: str, field: str = "ημερομηνία") -> date:
         raise HTTPException(400, f"Μη έγκυρη {field}: {v!r}")
 
 
+def _advice(conn):
+    """Πρόταση κατανομής χρόνου, ή None αν δεν έχουν δηλωθεί διαθέσιμες ώρες."""
+    minutes = get_settings(conn)["study_minutes"]
+    return balance.advise(conn, minutes, _tz(conn)) if any(minutes) else None
+
+
 # ---------------------------------------------------------------- Σήμερα / καθυστερήσεις
 
 @router.get("/")
@@ -77,6 +83,7 @@ def today_page(request: Request, conn=Depends(get_conn)):
         cards.append({
             "course": c, "tasks": todays, "files": services.task_files(conn, [t["id"] for t in todays]),
             "studied_today": studytime.course_stats(conn, c["id"], _tz(conn), days=1).today,
+            "goal": studytime.goal_progress(conn, c, _tz(conn), today),
             "progress": services.progress(all_tasks), "overdue": len(services.overdue(conn, today, c["id"])),
             "streak": services.streak_from(all_tasks, today), "days_left": services.days_left(c["exam_date"], today),
             "upcoming": upcoming,
@@ -85,7 +92,9 @@ def today_page(request: Request, conn=Depends(get_conn)):
     greeting = "Καλημέρα" if 5 <= hour < 12 else "Καλό απόγευμα" if hour < 18 else "Καλησπέρα"
     pending = sum(1 for c in cards for t in c["tasks"] if t["status"] != "Ναι")
     all_today = [t for c in cards for t in c["tasks"]]
-    return _render(request, "today.html", {"cards": cards, "today": today, "greeting": greeting, "pending": pending,
+    advice = _advice(conn)
+    return _render(request, "today.html", {"advice": advice,
+                                           "cards": cards, "today": today, "greeting": greeting, "pending": pending,
                                            "tomorrow": today + timedelta(days=1), "task_secs": _secs(conn, all_today)})
 
 
@@ -179,8 +188,9 @@ def time_page(request: Request, slug: str, conn=Depends(get_conn)):
     st = studytime.course_stats(conn, c["id"], _tz(conn), days=14)
     peak = max([s for _, s in st.days] + [60])
     week_peak = max([s for _, s in st.by_week] + [60])
-    return _render(request, "time.html", {"course": c, "st": st, "peak": peak, "week_peak": week_peak,
-                                          "today": services.local_today(conn)})
+    today = services.local_today(conn)
+    return _render(request, "time.html", {"course": c, "st": st, "peak": peak, "week_peak": week_peak, "today": today,
+                                          "goal": studytime.goal_progress(conn, c, _tz(conn), today)})
 
 
 @router.get("/c/{slug}/review")
@@ -243,6 +253,7 @@ async def _save_task(request: Request, conn, course, task_id: int | None):
     status = form.get("status", "Όχι")
     if status not in services.STATUSES:
         status = "Όχι"
+    size = str(form.get("size", ""))
     vals = (week_id, day, d.isoformat(), str(form.get("topic", ""))[:300], str(form.get("description", ""))[:2000],
             str(form.get("source", ""))[:500], str(form.get("notes", ""))[:5000])
     if task_id is None:
@@ -252,6 +263,8 @@ async def _save_task(request: Request, conn, course, task_id: int | None):
     else:
         conn.execute("UPDATE task SET week_id=?, day_no=?, date=?, topic=?, description=?, source=?, notes=? WHERE id=?",
                      (*vals, task_id))
+    if size in ("1", "2", "3"):          # αλλιώς («όπως είναι») το μέγεθος δεν αλλάζει
+        conn.execute("UPDATE task SET effort=? WHERE id=?", (int(size), task_id))
     services.set_status(conn, task_id, status)
     file_ids = {int(x) for x in form.getlist("files") if str(x).isdigit()}
     primary = form.get("primary_file")
@@ -352,6 +365,79 @@ async def course_create(request: Request, name: str = Form(""), exam_date: str =
     return RedirectResponse(f"/c/{slug}", status_code=303)
 
 
+def _builder_page(request, form: dict, plan=None, error: str = "", status_code: int = 200):
+    return _render(request, "builder.html", {"f": form, "plan": plan, "error": error, "weekdays": WEEKDAYS},
+                   status_code)
+
+
+@router.get("/courses/builder")
+def builder_form(request: Request, conn=Depends(get_conn)):
+    return _builder_page(request, {"name": "", "start": services.local_today(conn).isoformat(), "exam_date": "",
+                                   "topics": "", "weekdays": list(range(7)), "revision_days": "2",
+                                   "color": "#3b6ea5", "days_off": ""})
+
+
+@router.post("/courses/builder")
+async def builder_submit(request: Request, conn=Depends(get_conn)):
+    data = await request.form()
+    auth.check_csrf(request, data.get("csrf"))
+    form = {k: str(data.get(k, "")).strip() for k in
+            ("name", "start", "exam_date", "topics", "revision_days", "color", "days_off")}
+    form["weekdays"] = sorted({int(d) for d in data.getlist("weekdays") if str(d) in "0123456" and len(str(d)) == 1})
+    if not re.match(r"^#[0-9a-fA-F]{6}$", form["color"]):
+        form["color"] = "#3b6ea5"
+    try:
+        name = form["name"][:120]
+        if not name:
+            raise builder.PlanError("Δώσε όνομα μαθήματος.")
+        try:
+            start, exam = date.fromisoformat(form["start"]), date.fromisoformat(form["exam_date"])
+        except ValueError:
+            raise builder.PlanError("Συμπλήρωσε την ημέρα έναρξης και την ημερομηνία εξέτασης.")
+        if start < services.local_today(conn):
+            raise builder.PlanError("Η ημέρα έναρξης έχει περάσει.")
+        if not form["revision_days"].isdecimal():
+            raise builder.PlanError("Οι ημέρες επανάληψης πρέπει να είναι αριθμός (0 ή περισσότερο).")
+        plan = builder.build(builder.parse_topics(form["topics"]), start, exam, set(form["weekdays"]),
+                             builder.parse_dates(form["days_off"]), int(form["revision_days"]))
+    except builder.PlanError as e:
+        return _builder_page(request, form, error=str(e), status_code=400)
+    if data.get("action") != "create":
+        return _builder_page(request, form, plan)
+    slug = services.unique_slug(conn, name)
+    cid = conn.execute("INSERT INTO course(name, slug, exam_date, color) VALUES(?,?,?,?)",
+                       (name, slug, exam.isoformat(), form["color"])).lastrowid
+    count = builder.save(conn, cid, plan)
+    _flash(request, f"Το μάθημα «{name}» δημιουργήθηκε με {count} εργασίες.")
+    return RedirectResponse(f"/c/{slug}", status_code=303)
+
+
+@router.get("/balance")
+def balance_page(request: Request, conn=Depends(get_conn)):
+    return _render(request, "balance.html", {"advice": _advice(conn), "weekdays": WEEKDAYS,
+                                             "minutes": get_settings(conn)["study_minutes"]})
+
+
+@router.post("/balance")
+async def balance_save(request: Request, conn=Depends(get_conn)):
+    data = await request.form()
+    auth.check_csrf(request, data.get("csrf"))
+    minutes = []
+    for i, day in enumerate(WEEKDAYS):
+        text = str(data.get(f"hours_{i}", "")).strip().replace(",", ".")
+        try:
+            hours = float(text or 0)
+        except ValueError:
+            hours = -1
+        if not 0 <= hours <= 16:
+            _flash(request, f"{day}: γράψε ώρες από 0 έως 16, π.χ. 3 ή 1,5.", "error")
+            return RedirectResponse("/balance", status_code=303)
+        minutes.append(round(hours * 60))
+    save_settings(conn, {"study_minutes": minutes})
+    _flash(request, "Οι διαθέσιμες ώρες αποθηκεύτηκαν.")
+    return RedirectResponse("/balance", status_code=303)
+
+
 @router.get("/c/{slug}")
 def plan_page(request: Request, slug: str, conn=Depends(get_conn)):
     c = _course(conn, slug)
@@ -395,16 +481,27 @@ def course_settings(request: Request, slug: str, conn=Depends(get_conn)):
 @router.post("/c/{slug}/settings")
 def course_settings_save(request: Request, slug: str, name: str = Form(...), exam_date: str = Form(""),
                          color: str = Form("#2563eb"), active: str = Form(""), notify_on: str = Form(""),
-                         csrf: str = Form(""), conn=Depends(get_conn)):
+                         weekly_goal: str = Form(""), medium_minutes: str = Form(""), csrf: str = Form(""),
+                         conn=Depends(get_conn)):
     auth.check_csrf(request, csrf)
     c = _course(conn, slug)
     if exam_date:
         _parse_date(exam_date, "ημερομηνία εξέτασης")
     if not re.match(r"^#[0-9a-fA-F]{6}$", color):
         color = c["color"]
-    conn.execute("UPDATE course SET name=?, exam_date=?, color=?, active=?, notify=? WHERE id=?",
-                 (name.strip()[:120] or c["name"], exam_date or None, color, int(active == "on"),
-                  int(notify_on == "on"), c["id"]))
+    goal = studytime.parse_goal_hours(weekly_goal)
+    if goal is None:
+        _flash(request, f"Ο εβδομαδιαίος στόχος πρέπει να είναι ώρες από 0 έως {studytime.MAX_GOAL_HOURS}, "
+                        "π.χ. 8 ή 7,5.", "error")
+        return RedirectResponse(f"/c/{slug}/settings", status_code=303)
+    medium = medium_minutes.strip() or str(c["medium_minutes"])
+    if not (medium.isdecimal() and 5 <= int(medium) <= 600):
+        _flash(request, "Η διάρκεια της μεσαίας εργασίας πρέπει να είναι από 5 έως 600 λεπτά.", "error")
+        return RedirectResponse(f"/c/{slug}/settings", status_code=303)
+    conn.execute("UPDATE course SET medium_minutes=? WHERE id=?", (int(medium), c["id"]))
+    conn.execute("UPDATE course SET name=?, exam_date=?, color=?, active=?, notify=?, weekly_goal_minutes=? "
+                 "WHERE id=?", (name.strip()[:120] or c["name"], exam_date or None, color, int(active == "on"),
+                                int(notify_on == "on"), goal, c["id"]))
     _flash(request, "Το μάθημα ενημερώθηκε.")
     return RedirectResponse(f"/c/{slug}/settings", status_code=303)
 
@@ -566,8 +663,9 @@ def settings_page(request: Request, conn=Depends(get_conn)):
     log = conn.execute("""SELECT l.*, c.name AS course_name FROM notification_log l LEFT JOIN course c ON c.id=l.course_id
                           ORDER BY l.created_at DESC LIMIT 25""").fetchall()
     tzs = sorted(z for z in available_timezones() if "/" in z and not z.startswith(("Etc/", "SystemV/")))
+    cal = calfeed.current_token(conn)
     return _render(request, "settings.html", {
-        "s": s, "weekdays": WEEKDAYS, "log": log, "timezones": tzs, "has_token": bool(effective_token(s)),
+        "cal_url": calfeed.feed_url(cal) if cal else None, "s": s, "weekdays": WEEKDAYS, "log": log, "timezones": tzs, "has_token": bool(effective_token(s)),
         "token_from_env": not s.get("ntfy_token") and bool(get_config().ntfy_token_default),
         "evening_slots": list(range(4)), "base_url": get_config().base_url})
 
@@ -583,6 +681,20 @@ async def settings_save(request: Request, conn=Depends(get_conn)):
     save_settings(conn, values)
     _flash(request, "Οι ρυθμίσεις αποθηκεύτηκαν και ισχύουν αμέσως.")
     return RedirectResponse("/settings", status_code=303)
+
+
+@router.post("/settings/calendar")
+def settings_calendar(request: Request, action: str = Form(...), csrf: str = Form(""), conn=Depends(get_conn)):
+    auth.check_csrf(request, csrf)
+    if action == "new":
+        calfeed.new_token(conn)
+        _flash(request, "Δημιουργήθηκε νέο link ημερολογίου.")
+    elif action == "disable":
+        calfeed.disable(conn)
+        _flash(request, "Το link ημερολογίου καταργήθηκε.")
+    else:
+        raise HTTPException(400, "Μη έγκυρη ενέργεια.")
+    return RedirectResponse("/settings#calendar", status_code=303)
 
 
 @router.post("/settings/test")

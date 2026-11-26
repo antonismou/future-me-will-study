@@ -102,6 +102,9 @@ CREATE INDEX IF NOT EXISTS session_task ON study_session(task_id);
 MIGRATIONS = [
     ("task", "hard", "INTEGER NOT NULL DEFAULT 0"),
     ("task", "reviewed_at", "TEXT"),
+    ("course", "weekly_goal_minutes", "INTEGER NOT NULL DEFAULT 0"),
+    ("course", "medium_minutes", "INTEGER NOT NULL DEFAULT 60"),
+    ("task", "effort", "REAL"),                 # μονάδες μεγέθους (1/2/3)· NULL = μεσαίο
 ]
 
 

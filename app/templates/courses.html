@@ -21,6 +21,11 @@
 </div>
 {% endif %}
 
+<div class="row wrap-gap section">
+  <a class="btn" href="/courses/builder">{{ icon('plus') }}Πλάνο από θέματα</a>
+  {% if rows %}<a class="btn" href="/balance">{{ icon('clock') }}Ισορροπία μαθημάτων</a>{% endif %}
+</div>
+
 <details class="card" {{ 'open' if not rows }}>
   <summary>Νέο μάθημα {{ icon('chevron') }}</summary>
   <form method="post" action="/courses" enctype="multipart/form-data" class="stack">

@@ -46,6 +46,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const h = Math.max(0, Math.min(100, Number(el.dataset.h) || 0));
     requestAnimationFrame(() => { el.style.height = h + "%"; if (h > 0) el.style.minHeight = "2px"; });
   });
+  // Αντιγραφή link: το κουμπί εμφανίζεται μόνο όπου υπάρχει clipboard (https ή localhost)
+  document.querySelectorAll("[data-select]").forEach((el) => el.addEventListener("focus", () => el.select()));
+  if (navigator.clipboard) {
+    document.querySelectorAll("[data-copy]").forEach((b) => {
+      b.hidden = false;
+      b.addEventListener("click", () => navigator.clipboard.writeText(b.dataset.copy)
+        .then(() => { b.textContent = "Αντιγράφηκε"; }, () => { b.textContent = "Δεν αντιγράφηκε"; }));
+    });
+  }
   // Εκτύπωση
   document.querySelectorAll("[data-print]").forEach((b) => b.addEventListener("click", () => window.print()));
   // Άνοιγμα της σημερινής ημέρας στο πλάνο

@@ -6,14 +6,14 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, Form, Request
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from markupsafe import Markup
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
-from . import auth, notify, services, storage, studytime, tokens
+from . import auth, calfeed, notify, services, storage, studytime, tokens
 from .config import get_config
 from .db import connect, get_conn, init_db
 
@@ -244,6 +244,14 @@ def create_app() -> FastAPI:
             raise StarletteHTTPException(403, "Το link έληξε. Άνοιξε το αρχείο από το dashboard.")
         row = conn.execute("SELECT * FROM file WHERE id=?", (int(parts[0]),)).fetchone()
         return _serve(row)
+
+    @app.api_route("/cal/{token}.ics", methods=["GET", "HEAD"])
+    def calendar_feed(token: str, conn=Depends(get_conn)):
+        if not calfeed.check_token(conn, token):
+            raise StarletteHTTPException(404, "Το ημερολόγιο δεν βρέθηκε.")
+        return Response(calfeed.build(conn), media_type="text/calendar; charset=utf-8",
+                        headers={"Cache-Control": "private, no-store",
+                                 "Content-Disposition": 'inline; filename="study.ics"'})
 
     def _serve(row):
         if not row:

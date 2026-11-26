@@ -88,6 +88,42 @@
   <div class="savebar"><button class="btn primary block" type="submit">Αποθήκευση</button></div>
 </form>
 
+<section class="section" id="calendar">
+  <div class="section-head"><h2>Ημερολόγιο στο κινητό</h2></div>
+  <div class="card stack">
+    {% if cal_url %}
+    <label>Ιδιωτικό link
+      <input value="{{ cal_url }}" readonly data-select>
+      <span class="hint">Όποιος έχει το link βλέπει το πλάνο των ενεργών μαθημάτων (όχι τις σημειώσεις σου). Μην το μοιραστείς.</span></label>
+    <div class="row wrap-gap">
+      <button class="btn primary" type="button" data-copy="{{ cal_url }}" hidden>Αντιγραφή link</button>
+      <a class="btn" href="{{ cal_url | replace('https://', 'webcal://') | replace('http://', 'webcal://') }}">Άνοιγμα στο ημερολόγιο</a>
+    </div>
+    <p class="hint"><strong>Google Calendar</strong> (από υπολογιστή, calendar.google.com): «Άλλα ημερολόγια» → <strong>+</strong> → «Από διεύθυνση URL» → επικόλληση → «Προσθήκη ημερολογίου». Μετά εμφανίζεται και στο κινητό. Η Google ανανεώνει με καθυστέρηση, συχνά αρκετών ωρών.</p>
+    <p class="hint"><strong>iPhone</strong>: Ρυθμίσεις → Ημερολόγιο → Λογαριασμοί → Προσθήκη λογαριασμού → Άλλο → «Προσθήκη συνδρομητικού ημερολογίου».</p>
+    <div class="row wrap-gap">
+      <form method="post" action="/settings/calendar" data-confirm="Το τωρινό link θα σταματήσει να λειτουργεί. Συνέχεια;">
+        <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+        <input type="hidden" name="action" value="new">
+        <button class="btn small" type="submit">Νέο link</button>
+      </form>
+      <form method="post" action="/settings/calendar" data-confirm="Κατάργηση του link ημερολογίου;">
+        <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+        <input type="hidden" name="action" value="disable">
+        <button class="btn small danger" type="submit">Κατάργηση</button>
+      </form>
+    </div>
+    {% else %}
+    <p class="muted small">Δες το πλάνο διαβάσματος και τις ημερομηνίες εξέτασης στο ημερολόγιο του κινητού ή στο Google Calendar.</p>
+    <form method="post" action="/settings/calendar">
+      <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+      <input type="hidden" name="action" value="new">
+      <button class="btn" type="submit">Δημιουργία link</button>
+    </form>
+    {% endif %}
+  </div>
+</section>
+
 <section class="section">
   <div class="section-head"><h2>Ιστορικό αποστολών</h2></div>
   <div class="panel">

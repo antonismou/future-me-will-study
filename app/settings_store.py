@@ -38,6 +38,7 @@ def defaults() -> dict[str, Any]:
         "ntfy_token": "",
         "priority": 3,
         "evening_priority": 4,
+        "study_minutes": [0] * 7,     # διαθέσιμα λεπτά ανά ημέρα (Δευτέρα πρώτη), για την ισορροπία μαθημάτων
     }
 
 

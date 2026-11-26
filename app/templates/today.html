@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "macros.html" import task_item, bar with context %}
+{% from "macros.html" import task_item, bar, weekly_goal, balance_today with context %}
 {% block title %}Σήμερα{% endblock %}
 {% block content %}
 <div class="page-head">
@@ -15,6 +15,13 @@
 </section>
 {% endif %}
 
+{% if advice and advice.courses %}
+<section class="section">
+  <div class="section-head"><h2>Μοίρασμα χρόνου σήμερα</h2><a class="meta linkish" href="/balance">Λεπτομέρειες</a></div>
+  {{ balance_today(advice) }}
+</section>
+{% endif %}
+
 {% for c in cards %}
 <section class="section course-block" data-color="{{ c.course.color }}">
   <div class="course-head">
@@ -22,6 +29,7 @@
     <span class="course-meta">{{ c.progress.done }}/{{ c.progress.total }}{% if c.days_left is not none and c.days_left >= 0 %} · {{ 'εξέταση σήμερα' if c.days_left == 0 else 'εξέταση σε ' ~ c.days_left ~ (' ημέρα' if c.days_left == 1 else ' ημέρες') }}{% endif %}{% if c.streak %} · {{ c.streak }} συνεχόμενες{% endif %}{% if c.studied_today >= 60 %} · {{ c.studied_today | dur }} σήμερα{% endif %}</span>
   </div>
   {{ bar(c.progress.pct) }}
+  {% if c.goal %}{{ weekly_goal(c.goal) }}{% endif %}
   {% if c.tasks %}
   <div class="panel list">
     {% for t in c.tasks %}{{ task_item(t, c.files[t.id], '/', tomorrow) }}{% endfor %}

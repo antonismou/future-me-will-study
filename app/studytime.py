@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 
 MAX_SESSION = timedelta(hours=6)   # αν ξεχαστεί το χρονόμετρο, δεν μετράμε πάνω από 6 ώρες
 MAX_MANUAL_MINUTES = 12 * 60
+MAX_GOAL_HOURS = 100
 
 
 def utcnow() -> datetime:
@@ -133,6 +134,55 @@ def course_stats(conn: sqlite3.Connection, course_id: int | None, tz: ZoneInfo, 
     by_task = [(tasks[i], per_task[i]) for i in top_ids if i in tasks]
     return Stats(today=per_day.get(today, 0), week=week_total, total=total, days=day_list, by_week=by_week,
                  by_task=by_task, recent=rows[:15], avg_day=sum(s for _, s in day_list) // max(days, 1))
+
+
+def parse_goal_hours(text: str) -> int | None:
+    """Ώρες (π.χ. «8» ή «7,5») σε λεπτά. Κενό = χωρίς στόχο (0). None αν η τιμή δεν είναι έγκυρη."""
+    text = text.strip().replace(",", ".")
+    if not text:
+        return 0
+    try:
+        hours = float(text)
+    except ValueError:
+        return None
+    if not 0 <= hours <= MAX_GOAL_HOURS:   # απορρίπτει και nan/inf
+        return None
+    return round(hours * 60)
+
+
+@dataclass
+class Goal:
+    done: int          # δευτερόλεπτα μέσα στην εβδομάδα (Δευτέρα–Κυριακή)
+    target: int        # δευτερόλεπτα
+    days_left: int     # ημέρες που απομένουν, μαζί με τη σημερινή
+
+    @property
+    def pct(self) -> int:
+        return min(100, 100 * self.done // self.target)
+
+    @property
+    def remaining(self) -> int:
+        return max(0, self.target - self.done)
+
+    @property
+    def per_day(self) -> int:
+        """Πόσο χρειάζεται κάθε μέρα που μένει, στρογγυλεμένο προς τα πάνω σε ολόκληρο λεπτό."""
+        return -(-self.remaining // (self.days_left * 60)) * 60
+
+
+def goal_progress(conn: sqlite3.Connection, course: sqlite3.Row, tz: ZoneInfo, day: date,
+                  now: datetime | None = None) -> Goal | None:
+    """Πρόοδος του εβδομαδιαίου στόχου για την εβδομάδα που περιέχει το `day`. None αν δεν υπάρχει στόχος."""
+    if not course["weekly_goal_minutes"]:
+        return None
+    now = now or utcnow()
+    monday = day - timedelta(days=day.weekday())
+    done = 0
+    for r in conn.execute("SELECT started_at, ended_at, seconds FROM study_session WHERE course_id=?",
+                          (course["id"],)):
+        if monday <= _parse(r["started_at"]).astimezone(tz).date() < monday + timedelta(days=7):
+            done += _seconds(r, now)
+    return Goal(done=done, target=course["weekly_goal_minutes"] * 60, days_left=7 - day.weekday())
 
 
 def fmt_duration(seconds: int | None) -> str:

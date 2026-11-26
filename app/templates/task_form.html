@@ -19,6 +19,12 @@
       </select></label>
     <label>Κατάσταση
       <select name="status">{% for st in STATUSES %}<option value="{{ st }}" {{ 'selected' if task and task.status == st }}>{{ status_label[st] }}</option>{% endfor %}</select></label>
+    <label>Μέγεθος
+      <select name="size">
+        {% if task and task.effort is not none and task.effort not in (1, 2, 3) %}<option value="" selected>Μέρος θέματος (όπως είναι)</option>{% endif %}
+        {% set current = 2 if not task or task.effort is none else task.effort %}
+        {% for v, n in [(1, 'Μικρή'), (2, 'Μεσαία'), (3, 'Μεγάλη')] %}<option value="{{ v }}" {{ 'selected' if current == v }}>{{ n }}</option>{% endfor %}
+      </select></label>
   </div>
   <label>Πηγή <input name="source" maxlength="500" value="{{ task.source if task else '' }}" placeholder="π.χ. Lecture 7.pdf"></label>
   <label>Σημειώσεις <textarea name="notes" rows="3">{{ task.notes if task else '' }}</textarea></label>

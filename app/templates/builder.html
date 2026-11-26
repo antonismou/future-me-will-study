@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Δημιουργός πλάνου{% endblock %}
+{% block content %}
+<div class="page-head">
+  <a class="crumb" href="/courses">{{ icon('chevron') }}Μαθήματα</a>
+  <h1>Δημιουργός πλάνου</h1>
+  <p class="sub">Γράψε τα θέματα και το πόσο μεγάλο είναι το καθένα. Το πλάνο μοιράζεται μόνο του στις ημέρες.</p>
+</div>
+
+{% if error %}<div class="flash error section" role="alert">{{ error }}</div>{% endif %}
+
+<form method="post" action="/courses/builder" class="card stack">
+  <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+  <label>Όνομα μαθήματος <input name="name" required maxlength="120" value="{{ f.name }}" placeholder="π.χ. Λειτουργικά Συστήματα"></label>
+  <div class="grid2">
+    <label>Ξεκινάω στις <input type="date" name="start" required value="{{ f.start }}"></label>
+    <label>Ημερομηνία εξέτασης <input type="date" name="exam_date" required value="{{ f.exam_date }}"></label>
+  </div>
+  <label>Θέματα, ένα σε κάθε γραμμή
+    <textarea name="topics" rows="9" required maxlength="20000" placeholder="Εισαγωγή | μικρό&#10;Διεργασίες | μεσαίο&#10;Διαχείριση μνήμης | μεγάλο&#10;Συστήματα αρχείων">{{ f.topics }}</textarea>
+    <span class="hint">Μετά το θέμα βάλε <code>|</code> και <strong>μικρό</strong> (εύκολο ή σύντομο), <strong>μεσαίο</strong> (μια κανονική διάλεξη) ή <strong>μεγάλο</strong> (δύσκολο ή μακρύ). Αν δεν βάλεις τίποτα, μετρά ως μεσαίο. Δουλεύουν και τα s, m, l.</span></label>
+  <fieldset>
+    <legend>Ποιες ημέρες διαβάζεις αυτό το μάθημα;</legend>
+    <div class="daychips">
+      {% for d in weekdays %}<label><input type="checkbox" name="weekdays" value="{{ loop.index0 }}" {{ 'checked' if loop.index0 in f.weekdays }}><span>{{ d[:3] }}</span></label>{% endfor %}
+    </div>
+  </fieldset>
+  <div class="grid2">
+    <label>Ημέρες επανάληψης στο τέλος <input type="number" name="revision_days" min="0" max="60" value="{{ f.revision_days }}"></label>
+    <label>Χρώμα <input type="color" name="color" value="{{ f.color }}"></label>
+  </div>
+  <label>Ημέρες χωρίς διάβασμα <input name="days_off" maxlength="2000" value="{{ f.days_off }}" placeholder="π.χ. 25/12/2026, 01/01/2027">
+    <span class="hint">Προαιρετικό.</span></label>
+  <div class="row wrap-gap">
+    <button class="btn {{ '' if plan else 'primary' }}" type="submit" name="action" value="preview">Προεπισκόπηση</button>
+    {% if plan %}<button class="btn primary" type="submit" name="action" value="create">Δημιουργία μαθήματος</button>{% endif %}
+  </div>
+</form>
+
+{% if plan %}
+<section class="section" id="preview">
+  <div class="section-head"><h2>Προεπισκόπηση</h2><span class="meta">{{ plan.study_days }} ημέρες θεμάτων · {{ plan.revision_days }} επανάληψης · έως {{ plan.max_per_day }} {{ 'εργασία' if plan.max_per_day == 1 else 'εργασίες' }}/ημέρα</span></div>
+  <p class="hint plan-note">Τίποτα δεν έχει αποθηκευτεί ακόμα. Άλλαξε ό,τι θέλεις πάνω και ξαναπάτα «Προεπισκόπηση», ή πάτα «Δημιουργία μαθήματος».</p>
+  {% for title, items in plan.weeks() %}
+  <h3 class="section-title">{{ title }}</h3>
+  <div class="panel">
+    <ul class="log">
+      {% for i in items %}
+      <li><div class="lx"><div class="lt wraps">{{ i.topic }}</div></div><span class="ls tnum">{{ i.date | gdate }}</span></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

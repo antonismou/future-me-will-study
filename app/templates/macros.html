@@ -2,6 +2,36 @@
 <div class="bar" role="progressbar" aria-valuenow="{{ pct }}" aria-valuemin="0" aria-valuemax="100" {% if color %}data-color="{{ color }}"{% endif %}><span data-pct="{{ pct }}"></span></div>
 {%- endmacro %}
 
+{% macro weekly_goal(goal) -%}
+<div class="goal">
+  <div class="goal-text">
+    <span>Στόχος εβδομάδας: <strong class="tnum">{{ goal.done | dur }}</strong> από {{ goal.target | dur }}</span>
+    <span class="goal-rest tnum">{% if not goal.remaining %}Τον πέτυχες{% elif goal.days_left == 1 %}Μένουν {{ goal.remaining | dur }} σήμερα{% else %}Μένουν {{ goal.remaining | dur }} · {{ goal.per_day | dur }}/ημέρα{% endif %}</span>
+  </div>
+  <div class="bar" role="progressbar" aria-label="Πρόοδος εβδομαδιαίου στόχου" aria-valuenow="{{ goal.pct }}" aria-valuemin="0" aria-valuemax="100"><span data-pct="{{ goal.pct }}"></span></div>
+</div>
+{%- endmacro %}
+
+{% macro balance_today(advice) -%}
+<div class="panel list">
+  {% for p in advice.courses %}
+  <a class="rowlink" href="/c/{{ p.course.slug }}" data-color="{{ p.course.color }}">
+    <span class="rl-main"><span class="rl-title"><span class="dot"></span> {{ p.course.name }}</span>
+      <span class="rl-sub">{% if p.studied >= 60 %}{{ p.studied | dur }} ήδη σήμερα{% else %}δεν ξεκίνησες σήμερα{% endif %}</span></span>
+    <span class="rl-val tnum">{{ p.suggested | dur }}</span>
+  </a>
+  {% endfor %}
+</div>
+{% if not advice.today_capacity %}
+<p class="hint plan-note">Σήμερα δεν έχεις δηλώσει ώρες διαβάσματος.</p>
+{% else %}
+<p class="hint plan-note">Προτεινόμενα {{ advice.suggested | dur }} από {{ advice.today_capacity | dur }} διαθέσιμες σήμερα.</p>
+{% endif %}
+{% if advice.shortfall %}
+<p class="warn-line">Με αυτές τις ώρες λείπουν περίπου <strong>{{ advice.shortfall.missing | dur }}</strong> μέχρι τις {{ advice.shortfall.deadline | gdate }} ({{ advice.shortfall.course_name }}). Πρόσθεσε ώρες ή περιόρισε την ύλη.</p>
+{% endif %}
+{%- endmacro %}
+
 {% macro course_header(course, active, sub='') -%}
 <div class="page-head">
   <a class="crumb" href="/courses">{{ icon('chevron') }}Μαθήματα</a>

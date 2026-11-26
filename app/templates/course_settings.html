@@ -13,6 +13,12 @@
       <label>Ημερομηνία εξέτασης <input type="date" name="exam_date" value="{{ course.exam_date or '' }}"></label>
       <label>Χρώμα <input type="color" name="color" value="{{ course.color }}"></label>
     </div>
+    <label>Εβδομαδιαίος στόχος μελέτης (ώρες)
+      <input name="weekly_goal" inputmode="decimal" maxlength="6" placeholder="π.χ. 8" value="{{ '%g' | format(course.weekly_goal_minutes / 60) if course.weekly_goal_minutes else '' }}">
+      <span class="hint">Άφησέ το κενό για να μην υπάρχει στόχος. Η εβδομάδα μετρά από Δευτέρα έως Κυριακή.</span></label>
+    <label>Διάρκεια μεσαίας εργασίας (λεπτά)
+      <input type="number" name="medium_minutes" min="5" max="600" value="{{ course.medium_minutes }}">
+      <span class="hint">Για την <a class="linkish" href="/balance">ισορροπία μαθημάτων</a>. Μικρή εργασία = μισός χρόνος, μεγάλη = μιάμιση φορά.</span></label>
     <hr class="divider">
     <label class="toggle"><span>Ενεργό<br><span class="hint">Εμφανίζεται στη σελίδα «Σήμερα»</span></span><input type="checkbox" name="active" {{ 'checked' if course.active }}></label>
     <label class="toggle"><span>Ειδοποιήσεις<br><span class="hint">Στέλνονται ειδοποιήσεις για αυτό το μάθημα</span></span><input type="checkbox" name="notify_on" {{ 'checked' if course.notify }}></label>

@@ -118,6 +118,15 @@ def weekly_message(conn: sqlite3.Connection, course: sqlite3.Row, s: dict[str, A
     st = studytime.course_stats(conn, course["id"], ZoneInfo(s["timezone"]), days=7)
     if st.week:
         lines.append(f"⏱️ Χρόνος μελέτης 7 ημερών: {studytime.fmt_duration(st.week)}")
+    # Ο στόχος μετρά Δευτέρα–Κυριακή. Αν η σύνοψη στέλνεται στην αρχή της εβδομάδας, αφορά την προηγούμενη.
+    early = d.weekday() < 3
+    goal_day = d - timedelta(days=d.weekday() + 1) if early else d
+    goal = studytime.goal_progress(conn, course, ZoneInfo(s["timezone"]), goal_day)
+    if goal:
+        when = "προηγούμενης εβδομάδας" if early else "εβδομάδας"
+        result = "πέτυχε ✅" if not goal.remaining else f"{goal.pct}%"
+        lines.append(f"🏁 Στόχος {when}: {studytime.fmt_duration(goal.done)} από "
+                     f"{studytime.fmt_duration(goal.target)} ({result})")
     lines += _extras(conn, course, s, d + timedelta(days=1), overdue=True, countdown=True, streak=True)
     if nxt:
         lines.append(f"🗓️ Επόμενες 7 μέρες: {len(nxt)} εργασίες")
