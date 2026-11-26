@@ -11,7 +11,8 @@ from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from fastapi.responses import RedirectResponse, Response
 from starlette.exceptions import HTTPException
 
-from . import auth, balance, builder, calfeed, exporter, importer, linker, notify, services, storage, studytime
+from . import (auth, balance, builder, calfeed, exporter, importer, linker, notify, reschedule, services, storage,
+               studytime)
 from .config import get_config
 from .db import get_conn
 from .settings_store import WEEKDAYS, effective_token, get_settings, parse_form, save_settings
@@ -70,6 +71,10 @@ def _advice(conn):
     return balance.advise(conn, minutes, _tz(conn)) if any(minutes) else None
 
 
+def _proposal(conn):
+    return reschedule.propose(conn, get_settings(conn)["study_minutes"], _tz(conn))
+
+
 # ---------------------------------------------------------------- Σήμερα / καθυστερήσεις
 
 @router.get("/")
@@ -93,7 +98,7 @@ def today_page(request: Request, conn=Depends(get_conn)):
     pending = sum(1 for c in cards for t in c["tasks"] if t["status"] != "Ναι")
     all_today = [t for c in cards for t in c["tasks"]]
     advice = _advice(conn)
-    return _render(request, "today.html", {"advice": advice,
+    return _render(request, "today.html", {"advice": advice, "suggested_moves": len(_proposal(conn).moves),
                                            "cards": cards, "today": today, "greeting": greeting, "pending": pending,
                                            "tomorrow": today + timedelta(days=1), "task_secs": _secs(conn, all_today)})
 
@@ -436,6 +441,38 @@ async def balance_save(request: Request, conn=Depends(get_conn)):
     save_settings(conn, {"study_minutes": minutes})
     _flash(request, "Οι διαθέσιμες ώρες αποθηκεύτηκαν.")
     return RedirectResponse("/balance", status_code=303)
+
+
+@router.get("/balance/reschedule")
+def reschedule_page(request: Request, conn=Depends(get_conn)):
+    return _render(request, "reschedule.html", {"proposal": _proposal(conn), "undo_count": reschedule.undo_count(conn),
+                                                "has_hours": any(get_settings(conn)["study_minutes"])})
+
+
+@router.post("/balance/reschedule")
+async def reschedule_accept(request: Request, conn=Depends(get_conn)):
+    data = await request.form()
+    auth.check_csrf(request, data.get("csrf"))
+    chosen = {str(v) for v in data.getlist("move")}
+    if not chosen:
+        _flash(request, "Δεν διάλεξες καμία αλλαγή.", "error")
+        return RedirectResponse("/balance/reschedule", status_code=303)
+    # Οι ημερομηνίες υπολογίζονται ξανά εδώ· από τη φόρμα έρχεται μόνο το ποιες δέχτηκε ο χρήστης.
+    moves = {m.key: m for m in _proposal(conn).moves}
+    if not chosen <= moves.keys():
+        _flash(request, "Η πρόταση άλλαξε από τότε που άνοιξες τη σελίδα. Δες τη νέα και δέξου την ξανά.", "error")
+        return RedirectResponse("/balance/reschedule", status_code=303)
+    n = reschedule.apply(conn, [m for key, m in moves.items() if key in chosen])
+    _flash(request, f"Άλλαξαν {n} ημερομηνίες." if n != 1 else "Άλλαξε 1 ημερομηνία.")
+    return RedirectResponse("/balance/reschedule", status_code=303)
+
+
+@router.post("/balance/reschedule/undo")
+def reschedule_undo(request: Request, csrf: str = Form(""), conn=Depends(get_conn)):
+    auth.check_csrf(request, csrf)
+    n = reschedule.undo(conn)
+    _flash(request, f"Αναίρεση: επανήλθαν {n} ημερομηνίες." if n != 1 else "Αναίρεση: επανήλθε 1 ημερομηνία.")
+    return RedirectResponse("/balance/reschedule", status_code=303)
 
 
 @router.get("/c/{slug}")

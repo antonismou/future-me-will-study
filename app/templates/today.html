@@ -22,6 +22,10 @@
 </section>
 {% endif %}
 
+{% if suggested_moves %}
+<a class="suggest-line section" href="/balance/reschedule"><span>Προτείνεται αλλαγή σε {{ suggested_moves }} {{ 'ημερομηνία' if suggested_moves == 1 else 'ημερομηνίες' }}. Δες την πρόταση</span>{{ icon('chevron') }}</a>
+{% endif %}
+
 {% for c in cards %}
 <section class="section course-block" data-color="{{ c.course.color }}">
   <div class="course-head">

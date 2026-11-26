@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Πρόταση αναπρογραμματισμού{% endblock %}
+{% block content %}
+<div class="page-head">
+  <a class="crumb" href="/balance">{{ icon('chevron') }}Ισορροπία μαθημάτων</a>
+  <h1>Πρόταση αναπρογραμματισμού</h1>
+  <p class="sub">Νέες ημερομηνίες ώστε το πλάνο να χωρά στις ώρες σου. Τίποτα δεν αλλάζει αν δεν το δεχτείς.</p>
+</div>
+
+{% if undo_count %}
+<form method="post" action="/balance/reschedule/undo" class="card undo-line">
+  <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+  <span class="muted small">Η τελευταία αποδοχή άλλαξε {{ undo_count }} {{ 'ημερομηνία' if undo_count == 1 else 'ημερομηνίες' }}.</span>
+  <button class="btn small" type="submit">Αναίρεση</button>
+</form>
+{% endif %}
+
+{% if not has_hours %}
+<section class="panel empty">
+  <h2>Χρειάζονται οι διαθέσιμες ώρες σου</h2>
+  <p>Δήλωσε πόσες ώρες διαβάζεις κάθε ημέρα.</p>
+  <a class="btn primary" href="/balance">Ορισμός ωρών</a>
+</section>
+{% else %}
+
+{% if proposal.unplaced %}
+<div class="warn-line section">
+  <strong>{{ proposal.unplaced | length }} {{ 'εργασία δεν χωρά' if proposal.unplaced | length == 1 else 'εργασίες δεν χωρούν' }}</strong> πριν από την εξέταση με αυτές τις ώρες. Μένουν στην ημερομηνία τους. Πρόσθεσε ώρες ή περιόρισε την ύλη.
+  <ul>
+    {% for c, t in proposal.unplaced[:10] %}<li>{{ c.name }}: {{ t.topic }}</li>{% endfor %}
+    {% if proposal.unplaced | length > 10 %}<li>και {{ proposal.unplaced | length - 10 }} ακόμα</li>{% endif %}
+  </ul>
+</div>
+{% endif %}
+
+{% if proposal.moves %}
+<form method="post" action="/balance/reschedule">
+  <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+  {% for course, moves in proposal.by_course() %}
+  <section class="section">
+    <div class="section-head"><h2 class="course-name" data-color="{{ course.color }}"><span class="dot"></span>{{ course.name }}</h2><span class="meta">{{ moves | length }} {{ 'αλλαγή' if moves | length == 1 else 'αλλαγές' }}</span></div>
+    <div class="panel list">
+      {% for m in moves %}
+      <label class="move">
+        <input type="checkbox" name="move" value="{{ m.key }}" checked>
+        <span class="rl-main"><span class="rl-title">{{ m.task.topic }}</span>
+          <span class="rl-sub tnum">{{ m.old | gdate }} → <strong>{{ m.new | gdate }}</strong></span></span>
+      </label>
+      {% endfor %}
+    </div>
+  </section>
+  {% endfor %}
+  <p class="hint plan-note">Ξετσέκαρε όποια αλλαγή δεν θέλεις. Η πρόταση υπολογίζεται για όλες μαζί, οπότε αν δεχτείς μόνο μερικές, κάποιες ημέρες μπορεί να ξεπερνούν τις ώρες σου.</p>
+  <div class="savebar static"><button class="btn primary block" type="submit">Αποδοχή των επιλεγμένων</button></div>
+</form>
+{% elif not proposal.unplaced %}
+<section class="panel empty">
+  <h2>Δεν χρειάζεται καμία αλλαγή</h2>
+  <p>Το πλάνο χωρά στις διαθέσιμες ώρες σου.</p>
+</section>
+{% endif %}
+{% endif %}
+{% endblock %}
