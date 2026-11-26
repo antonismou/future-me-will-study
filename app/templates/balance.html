@@ -25,7 +25,7 @@
     {% for p in advice.courses %}
     <a class="rowlink" href="/c/{{ p.course.slug }}/settings">
       <span class="rl-main"><span class="rl-title">{{ p.course.name }}</span>
-        <span class="rl-sub">{{ 'Εξέταση' if p.course.exam_date else 'Τέλος πλάνου πριν' }} {{ p.deadline | gdate }} · μεσαία εργασία {{ (p.course.medium_minutes * 60) | dur }}</span></span>
+        <span class="rl-sub">{{ 'Εξέταση' if p.course.exam_date else 'Τέλος πλάνου πριν' }} {{ p.deadline | gdate }}{% if p.course.exam_estimated %} (εκτίμηση){% endif %} · μεσαία εργασία {{ (p.course.medium_minutes * 60) | dur }}</span></span>
       <span class="rl-val tnum">{{ p.remaining | dur }}</span>
     </a>
     {% endfor %}

@@ -41,7 +41,8 @@ def _extras(conn: sqlite3.Connection, course: sqlite3.Row, s: dict[str, Any], to
     if countdown and s.get("countdown_enabled"):
         left = services.days_left(course["exam_date"], today)
         if left is not None and left >= 0:
-            lines.append("🎯 Η εξέταση είναι σήμερα!" if left == 0 else f"⏳ Μένουν {left} μέρες για την εξέταση")
+            text = "🎯 Η εξέταση είναι σήμερα!" if left == 0 else f"⏳ Μένουν {left} μέρες για την εξέταση"
+            lines.append(text + (" (εκτίμηση)" if course["exam_estimated"] else ""))
     if overdue and s.get("overdue_enabled"):
         n = len(services.overdue(conn, today, course["id"]))
         if n:

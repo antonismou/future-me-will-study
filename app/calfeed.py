@@ -97,6 +97,6 @@ def build(conn: sqlite3.Connection, now: datetime | None = None) -> str:
                             "\n".join(d for d in details if d), f"{url}#task-{t['id']}")
         if services.days_left(c["exam_date"], date.min) is not None:
             lines += _event(f"exam-{c['id']}@{host}", stamp, date.fromisoformat(c["exam_date"]),
-                            f"🎯 Εξέταση: {c['name']}", url, url)
+                            f"🎯 Εξέταση{' (εκτίμηση)' if c['exam_estimated'] else ''}: {c['name']}", url, url)
     lines.append("END:VCALENDAR")
     return "\r\n".join(_fold(x) for x in lines) + "\r\n"

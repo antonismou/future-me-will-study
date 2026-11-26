@@ -16,6 +16,7 @@
     <label>Ξεκινάω στις <input type="date" name="start" required value="{{ f.start }}"></label>
     <label>Ημερομηνία εξέτασης <input type="date" name="exam_date" required value="{{ f.exam_date }}"></label>
   </div>
+  <label class="check"><input type="checkbox" name="exam_estimated" {{ 'checked' if f.exam_estimated == 'on' }}> Η εξέταση δεν έχει ανακοινωθεί ακόμα (η ημερομηνία είναι εκτίμηση)</label>
   <label>Θέματα, ένα σε κάθε γραμμή
     <textarea name="topics" rows="9" required maxlength="20000" placeholder="Εισαγωγή | μικρό&#10;Διεργασίες | μεσαίο&#10;Διαχείριση μνήμης | μεγάλο&#10;Συστήματα αρχείων">{{ f.topics }}</textarea>
     <span class="hint">Μετά το θέμα βάλε <code>|</code> και <strong>μικρό</strong> (εύκολο ή σύντομο), <strong>μεσαίο</strong> (μια κανονική διάλεξη) ή <strong>μεγάλο</strong> (δύσκολο ή μακρύ). Αν δεν βάλεις τίποτα, μετρά ως μεσαίο. Δουλεύουν και τα s, m, l.</span></label>

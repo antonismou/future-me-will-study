@@ -105,6 +105,7 @@ MIGRATIONS = [
     ("course", "weekly_goal_minutes", "INTEGER NOT NULL DEFAULT 0"),
     ("course", "medium_minutes", "INTEGER NOT NULL DEFAULT 60"),
     ("task", "effort", "REAL"),                 # μονάδες μεγέθους (1/2/3)· NULL = μεσαίο
+    ("course", "exam_estimated", "INTEGER NOT NULL DEFAULT 0"),  # 1 = η exam_date είναι εκτίμηση
 ]
 
 

@@ -2,7 +2,7 @@
 {% from "macros.html" import task_row, bar, course_header with context %}
 {% block title %}{{ course.name }}{% endblock %}
 {% block content %}
-{% set sub %}{{ total.done }} από {{ total.total }} ολοκληρωμένες{% if total.in_progress %} · {{ total.in_progress }} σε εξέλιξη{% endif %}{% if days_left is not none and days_left >= 0 %} · εξέταση {{ course.exam_date | daymonth }} (σε {{ days_left }} ημέρες){% endif %}{% endset %}
+{% set sub %}{{ total.done }} από {{ total.total }} ολοκληρωμένες{% if total.in_progress %} · {{ total.in_progress }} σε εξέλιξη{% endif %}{% if days_left is not none and days_left >= 0 %} · εξέταση {{ course.exam_date | daymonth }} (σε {{ days_left }} ημέρες){% if course.exam_estimated %} · εκτίμηση{% endif %}{% endif %}{% endset %}
 {% call course_header(course, 'plan', sub) %}
   <a class="btn small" href="/c/{{ course.slug }}/tasks/new">{{ icon('plus') }}Εργασία</a>
 {% endcall %}

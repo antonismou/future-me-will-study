@@ -65,6 +65,13 @@ def _parse_date(v: str, field: str = "ημερομηνία") -> date:
         raise HTTPException(400, f"Μη έγκυρη {field}: {v!r}")
 
 
+def _exam_estimated(exam_date: str, checkbox: str) -> int:
+    return int(checkbox == "on" and bool(exam_date))
+
+
+_NEEDS_GUESS = "Για εξέταση που δεν έχει ανακοινωθεί, βάλε μια εκτιμώμενη ημερομηνία."
+
+
 def _advice(conn):
     """Πρόταση κατανομής χρόνου, ή None αν δεν έχουν δηλωθεί διαθέσιμες ώρες."""
     minutes = get_settings(conn)["study_minutes"]
@@ -338,7 +345,7 @@ async def _read_upload(up: UploadFile | None, max_mb: int = 10) -> bytes | None:
 @router.post("/courses")
 async def course_create(request: Request, name: str = Form(""), exam_date: str = Form(""), color: str = Form("#2563eb"),
                         csrf: str = Form(""), xlsx: UploadFile | None = File(None), ics: UploadFile | None = File(None),
-                        year: str = Form(""), conn=Depends(get_conn)):
+                        year: str = Form(""), exam_estimated: str = Form(""), conn=Depends(get_conn)):
     auth.check_csrf(request, csrf)
     xdata = await _read_upload(xlsx)
     idata = await _read_upload(ics, 2)
@@ -355,10 +362,14 @@ async def course_create(request: Request, name: str = Form(""), exam_date: str =
         return RedirectResponse("/courses", status_code=303)
     if exam_date:
         _parse_date(exam_date, "ημερομηνία εξέτασης")
+    elif exam_estimated == "on":
+        _flash(request, _NEEDS_GUESS, "error")
+        return RedirectResponse("/courses", status_code=303)
     if not re.match(r"^#[0-9a-fA-F]{6}$", color):
         color = "#2563eb"
-    cid = conn.execute("INSERT INTO course(name, slug, exam_date, color) VALUES(?,?,?,?)",
-                       (name[:120], services.unique_slug(conn, name), exam_date or None, color)).lastrowid
+    cid = conn.execute("INSERT INTO course(name, slug, exam_date, color, exam_estimated) VALUES(?,?,?,?,?)",
+                       (name[:120], services.unique_slug(conn, name), exam_date or None, color,
+                        _exam_estimated(exam_date, exam_estimated))).lastrowid
     msg = f"Το μάθημα «{name}» δημιουργήθηκε."
     if plan:
         ics_map = importer.parse_ics(idata) if idata else None
@@ -378,7 +389,7 @@ def _builder_page(request, form: dict, plan=None, error: str = "", status_code: 
 @router.get("/courses/builder")
 def builder_form(request: Request, conn=Depends(get_conn)):
     return _builder_page(request, {"name": "", "start": services.local_today(conn).isoformat(), "exam_date": "",
-                                   "topics": "", "weekdays": list(range(7)), "revision_days": "2",
+                                   "topics": "", "weekdays": list(range(7)), "revision_days": "2", "exam_estimated": "",
                                    "color": "#3b6ea5", "days_off": ""})
 
 
@@ -387,7 +398,7 @@ async def builder_submit(request: Request, conn=Depends(get_conn)):
     data = await request.form()
     auth.check_csrf(request, data.get("csrf"))
     form = {k: str(data.get(k, "")).strip() for k in
-            ("name", "start", "exam_date", "topics", "revision_days", "color", "days_off")}
+            ("name", "start", "exam_date", "exam_estimated", "topics", "revision_days", "color", "days_off")}
     form["weekdays"] = sorted({int(d) for d in data.getlist("weekdays") if str(d) in "0123456" and len(str(d)) == 1})
     if not re.match(r"^#[0-9a-fA-F]{6}$", form["color"]):
         form["color"] = "#3b6ea5"
@@ -410,8 +421,9 @@ async def builder_submit(request: Request, conn=Depends(get_conn)):
     if data.get("action") != "create":
         return _builder_page(request, form, plan)
     slug = services.unique_slug(conn, name)
-    cid = conn.execute("INSERT INTO course(name, slug, exam_date, color) VALUES(?,?,?,?)",
-                       (name, slug, exam.isoformat(), form["color"])).lastrowid
+    cid = conn.execute("INSERT INTO course(name, slug, exam_date, color, exam_estimated) VALUES(?,?,?,?,?)",
+                       (name, slug, exam.isoformat(), form["color"],
+                        _exam_estimated(form["exam_date"], form["exam_estimated"]))).lastrowid
     count = builder.save(conn, cid, plan)
     _flash(request, f"Το μάθημα «{name}» δημιουργήθηκε με {count} εργασίες.")
     return RedirectResponse(f"/c/{slug}", status_code=303)
@@ -519,11 +531,14 @@ def course_settings(request: Request, slug: str, conn=Depends(get_conn)):
 def course_settings_save(request: Request, slug: str, name: str = Form(...), exam_date: str = Form(""),
                          color: str = Form("#2563eb"), active: str = Form(""), notify_on: str = Form(""),
                          weekly_goal: str = Form(""), medium_minutes: str = Form(""), csrf: str = Form(""),
-                         conn=Depends(get_conn)):
+                         exam_estimated: str = Form(""), conn=Depends(get_conn)):
     auth.check_csrf(request, csrf)
     c = _course(conn, slug)
     if exam_date:
         _parse_date(exam_date, "ημερομηνία εξέτασης")
+    elif exam_estimated == "on":
+        _flash(request, _NEEDS_GUESS, "error")
+        return RedirectResponse(f"/c/{slug}/settings", status_code=303)
     if not re.match(r"^#[0-9a-fA-F]{6}$", color):
         color = c["color"]
     goal = studytime.parse_goal_hours(weekly_goal)
@@ -535,7 +550,8 @@ def course_settings_save(request: Request, slug: str, name: str = Form(...), exa
     if not (medium.isdecimal() and 5 <= int(medium) <= 600):
         _flash(request, "Η διάρκεια της μεσαίας εργασίας πρέπει να είναι από 5 έως 600 λεπτά.", "error")
         return RedirectResponse(f"/c/{slug}/settings", status_code=303)
-    conn.execute("UPDATE course SET medium_minutes=? WHERE id=?", (int(medium), c["id"]))
+    conn.execute("UPDATE course SET medium_minutes=?, exam_estimated=? WHERE id=?",
+                 (int(medium), _exam_estimated(exam_date, exam_estimated), c["id"]))
     conn.execute("UPDATE course SET name=?, exam_date=?, color=?, active=?, notify=?, weekly_goal_minutes=? "
                  "WHERE id=?", (name.strip()[:120] or c["name"], exam_date or None, color, int(active == "on"),
                                 int(notify_on == "on"), goal, c["id"]))

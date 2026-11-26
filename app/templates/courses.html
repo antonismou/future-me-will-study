@@ -13,7 +13,7 @@
   <a class="course-row {{ '' if r.course.active else 'inactive' }}" href="/c/{{ r.course.slug }}" data-color="{{ r.course.color }}">
     <div class="course-head">
       <span class="course-name"><span class="dot"></span>{{ r.course.name }}</span>
-      <span class="course-meta">{{ r.progress.done }}/{{ r.progress.total }} · {{ r.files }} αρχεία{% if r.days_left is not none and r.days_left >= 0 %} · σε {{ r.days_left }} ημέρες{% endif %}{% if not r.course.active %} · ανενεργό{% endif %}</span>
+      <span class="course-meta">{{ r.progress.done }}/{{ r.progress.total }} · {{ r.files }} αρχεία{% if r.days_left is not none and r.days_left >= 0 %} · σε {{ r.days_left }} ημέρες{% if r.course.exam_estimated %} (εκτίμηση){% endif %}{% endif %}{% if not r.course.active %} · ανενεργό{% endif %}</span>
     </div>
     {{ bar(r.progress.pct) }}
   </a>
@@ -36,6 +36,8 @@
       <label>Ημερομηνία εξέτασης <input type="date" name="exam_date"></label>
       <label>Χρώμα <input type="color" name="color" value="#3b6ea5"></label>
     </div>
+    <label class="check"><input type="checkbox" name="exam_estimated"> Η εξέταση δεν έχει ανακοινωθεί ακόμα (η ημερομηνία είναι εκτίμηση)</label>
+    <p class="hint">Αν δεν ξέρεις την ημερομηνία, βάλε μια εκτίμηση και διόρθωσέ τη αργότερα από τις ρυθμίσεις του μαθήματος.</p>
     <hr class="divider">
     <label>Πλάνο (xlsx) <input type="file" name="xlsx" accept=".xlsx">
       <span class="hint">Προαιρετικό. Ίδια μορφή με το AHK_Study_Tracker: φύλλα εβδομάδων με στήλες Ημέρα, Ημερομηνία, Θέμα, Εργασία.</span></label>
